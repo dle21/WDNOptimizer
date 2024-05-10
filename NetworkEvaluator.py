@@ -7,8 +7,13 @@ class NetworkEvaluator:
 
     def __init__(self, input_network, input_sheet, min_p_req) -> None:
         self.input_sheet = input_sheet
+        self._get_cost_basis()
         self.wn = wntr.network.WaterNetworkModel(input_network)
-
+        # Setting global energy options
+        self.wn.options.energy.global_efficiency = 75.0
+        self.wn.options.energy.global_price = self.opex.loc[self.opex['Variable'] == 'Energy Price', 'Value'].values[0]/(3.6*10**6) #converting € 0.15 per kWh into €  per joules 
+        self.wn.options.energy.global_pattern = None
+        
         self.junctions = self.wn.junction_name_list
         self.pipes = self.wn.pipe_name_list
         self.tanks = self.wn.tank_name_list
@@ -17,9 +22,8 @@ class NetworkEvaluator:
         self.pumps = self.wn.pump_name_list
 
         self.min_p_req = min_p_req
-        self._get_cost_basis()
         self.run_sim()
-        self.incl_nodes = self.pressure_results.min() >= self.min_p_req
+        # self.incl_nodes = self.pressure_results.min() >= self.min_p_req
     
     def _get_cost_basis(self):
         self.pipecosts = pd.read_excel(self.input_sheet, sheet_name='Pipes')
@@ -32,19 +36,14 @@ class NetworkEvaluator:
         self.opex = pd.read_excel(self.input_sheet, sheet_name='Opex', skiprows=1)
 
     def run_sim(self):
-        # Setting global energy options
-        self.wn.options.energy.global_efficiency = 75.0
-        self.wn.options.energy.global_price = self.opex.loc[self.opex['Variable'] == 'Energy Price', 'Value'].values[0]/(3.6*10**6) #converting € 0.15 per kWh into €  per joules 
-        self.wn.options.energy.global_pattern = None 
-        
         #Running Sim and collecting network info
         sim = wntr.sim.EpanetSimulator(self.wn)
         try:
             self.results = sim.run_sim()
-
             self.pressure_results = self.results.node['pressure']
             self.head_results = self.results.node['head']
             self.flowrate_results = self.results.link['flowrate']
+            self.headloss_results = self.results.link['headloss'][self.pipes]
             return True
         except Exception as error:
             self.export_inp('Failed_run.inp')
@@ -52,8 +51,7 @@ class NetworkEvaluator:
             # exit()
             return False
 
-    def total_annual_expenditure_func(self):
-        
+    def capex(self):
         # PIPES
         pipe_dict = {
             "Pipe_Name": self.pipes,
@@ -82,8 +80,11 @@ class NetworkEvaluator:
         #TANKS
         total_tank_inv_cost = sum([300_000 + 150 * math.pi * self.wn.get_node(tank).diameter ** 2 / 4 * self.wn.get_node(tank).max_level for tank in self.tanks])
         
-        #TOTAL INVESTMENT COST
-        grand_total_inv_cost = total_pipe_inv_cost + total_pump_inv_cost + total_valve_inv_cost + total_tank_inv_cost
+        return [total_pipe_inv_cost, total_pump_inv_cost, total_valve_inv_cost, total_tank_inv_cost]
+
+    def totex_func(self, existing_capex):
+        total_pipe_inv_cost, total_pump_inv_cost, total_valve_inv_cost, total_tank_inv_cost = self.capex()
+        inv_cost = total_pipe_inv_cost + total_pump_inv_cost + total_valve_inv_cost + total_tank_inv_cost - existing_capex
         
         #OPERATIONAL COST
         # Energy Calculations
@@ -91,26 +92,35 @@ class NetworkEvaluator:
         pump_energy = wntr.metrics.pump_energy(pump_flowrate, self.head_results, self.wn)
         pump_cost = wntr.metrics.pump_cost(pump_energy, self.wn)
         
-        annual_pump_cost = pump_cost[0:24].sum().sum()*3600*365
+        self.wn.options.time.hydraulic_timestep
+        annual_pump_cost = pump_cost.sum().sum() * 365 * 86400 / self.wn.options.time.duration
         
         # OM Costs as percentage of CAPEX 
-        total_OM = (total_pipe_inv_cost * self.om.loc[self.om['Component'] == 'Pipes', 'Percentage of CAPEX '].values[0] + \
+        total_OM =  annual_pump_cost + \
+                    (total_pipe_inv_cost * self.om.loc[self.om['Component'] == 'Pipes', 'Percentage of CAPEX '].values[0] + \
                     total_pump_inv_cost * self.om.loc[self.om['Component'] == 'Pump stations', 'Percentage of CAPEX '].values[0] + \
                     total_tank_inv_cost * self.om.loc[self.om['Component'] == 'Tanks', 'Percentage of CAPEX '].values[0])
         
         # Annuity
         n = self.opex.loc[self.opex['Variable'] == 'Payback period', 'Value'].values[0]
         r = self.opex.loc[self.opex['Variable'] == 'Annual Interest rate', 'Value'].values[0]
-        annuity = (r/100*(1+r/100)**n)/((1+r/100)**n-1)*grand_total_inv_cost
+        annuity = (r/100*(1+r/100)**n)/((1+r/100)**n-1)*(inv_cost)
         
         #Total Annual Expenditure
-        total_annual_expenditure = annual_pump_cost + total_OM + annuity
-        print(f'Annual pump cost: {annual_pump_cost}, total OM: {total_OM}, annuity: {annuity}')
-        return total_annual_expenditure
+        total_annual_expenditure = total_OM + annuity
+        return total_annual_expenditure, inv_cost
     
-    def min_p_func(self):
-        min_p = self.pressure_results.loc[:, self.incl_nodes].loc[:, [j for j in self.junctions if j in self.incl_nodes[self.incl_nodes]]].min().min()
-        return min_p
+    def penalties(self, min_p_req, max_hl_req):
+        # min_p = self.pressure_results.loc[:, self.incl_nodes].loc[:, [j for j in self.junctions if j in self.incl_nodes[self.incl_nodes]]].min()
+        p_penalty = self.pressure_results.min()[self.pressure_results.min() < 20].apply(lambda x: 400000 if x < 0 else (min_p_req - x) * 20000).sum()
+        
+        # min_hl = self.headloss_results.loc[:, [j for j in self.junctions if j in self.incl_nodes[self.incl_nodes]]].min()
+        hl_penalty = ((self.headloss_results.max() * 1000 - max_hl_req) * 20000).apply(lambda x: max(x, 0)).sum()
+        return p_penalty + hl_penalty
+        
+    # def min_p_func(self):
+    #     min_p = self.pressure_results.loc[:, self.incl_nodes].loc[:, [j for j in self.junctions if j in self.incl_nodes[self.incl_nodes]]].min()
+    #     return min_p
     
     def todini_func(self, Pstar):
         flowrate = self.flowrate_results.loc[:, self.wn.pump_name_list]

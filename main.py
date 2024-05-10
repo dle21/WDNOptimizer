@@ -1,7 +1,19 @@
 import time
 from NetworkEvaluator import NetworkEvaluator
-from platypus import Problem, NSGAII, Integer, nondominated
+from platypus import Problem, NSGAII, Integer, Archive, nondominated
 import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+
+class LoggingArchive(Archive):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, *kwargs)
+        self.log = []
+    
+    def add(self, solution):
+        super().add(solution)
+        self.log.append(solution)
+
 
 start_time = time.time()
 
@@ -9,12 +21,18 @@ start_time = time.time()
 inp_file = 'OPTION_2___TONGALA_Masterplanning_2043_Horizon__1.inp'
 input_sheet = 'Optimisation_Cost_Basis.xlsx'
 min_p_req = 20
+max_hl_req = 10
 generations = 10000
 
+
+fig = plt.figure()
 nwke = NetworkEvaluator(inp_file, input_sheet, min_p_req)
-print(f'\n\nOriginal network cost: ${nwke.total_annual_expenditure_func():,.2f}')
+existing_totex, existing_capex = nwke.totex_func(0)
+existing_penalties = nwke.penalties(min_p_req, max_hl_req)
+print(f'\n\nOriginal network cost: ${existing_totex:,.2f}, Penalties: ${existing_penalties:,.2f}')
 available_diameters = nwke.pipecosts['Size'].unique()
 
+plt.scatter(existing_totex, existing_penalties, 20, 'r', 'd')
 s = time.time()
 print("GA optimisation in process…")
 
@@ -26,20 +44,30 @@ def Min_Cost_GA(x):
     # nwke.export_inp('wip.inp')
     run_passed = nwke.run_sim()
     if run_passed:
-        min_p = nwke.min_p_func()
-        total_annual_expenditure = nwke.total_annual_expenditure_func()
-        return [total_annual_expenditure], [min_p - min_p_req]
+        penalty = nwke.penalties(min_p_req, max_hl_req)
+        totex, _ = nwke.totex_func(existing_capex)
+        return [totex, penalty]
     else:
         return [float("inf"), float("-inf")]
 
-problem = Problem(len(nwke.pipes), 1 , 1) # (Decisions variables, objectives, constraints)
+problem = Problem(len(nwke.pipes), 2 , 0) # (Decisions variables, objectives, constraints)
 problem.types[:] = Integer(0, len(available_diameters)-1)
-problem.constraints[:] = ">=0"
+# problem.constraints[:] = ">=0"
 problem.function = Min_Cost_GA
-problem.directions[0] = Problem.MINIMIZE
-algorithm = NSGAII(problem, population_size=100)
-algorithm.run(generations)  
+problem.directions[:] = Problem.MINIMIZE
+log_archive = LoggingArchive()
+algorithm = NSGAII(problem, population_size=100, archive=log_archive)
+algorithm.run(generations)
 
+
+costs = [s.objectives[0] for s in algorithm.archive.log]
+h_penalties = [s.objectives[1] for s in algorithm.archive.log]
+plt.scatter(costs, h_penalties)
+plt.gca().set_yticklabels(['${:,.0f}'.format(x) for x in plt.gca().get_yticks()])
+plt.title(f'Pareto Front {generations} gens')
+plt.xlabel('Cost ($)')
+plt.ylabel('Hydraulic Penalties ($)')
+plt.show()
 end_time = time.time()
 
 # Results

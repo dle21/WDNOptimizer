@@ -691,6 +691,7 @@
  507005.GHD_021.1	507005          	GHD_021         	2.236216    	225.000000  	0.060000    	0.000000    	Open  	;
  GHD_016.GHD_023.1	GHD_016         	GHD_023         	1.920948    	225.000000  	0.060000    	0.000000    	Open  	;
  GHD_004.GHD_002.1	GHD_004         	GHD_002         	10.240313   	375.000000  	0.060000    	0.000000    	CV    	;
+ 1               	8093043X        	8093043Y        	1000        	141.000000  	0.600000    	0.000000    	Open  	;
 
 [PUMPS]
 ;ID              	Node1           	Node2           	Parameters
@@ -806,7 +807,6 @@
  8087727X.8087727Y.1	8087727X        	8087727Y        	158.000000  	TCV 	0.000100    	0.000100    	;
  8087728X.8087728Y.1	8087728X        	8087728Y        	158.000000  	TCV 	0.000100    	0.000100    	;
  8093042X.8093042Y.1	8093042X        	8093042Y        	235.000000  	TCV 	0.000100    	0.000100    	;
- 8093043X.8093043Y.1	8093043X        	8093043Y        	150.000000  	TCV 	1.500000    	1.500000    	;
  8096701X.8096701Y.1	8096701X        	8096701Y        	101.000000  	TCV 	0.000100    	0.000100    	;
  8101041X.8101041Y.1	8101041X        	8101041Y        	101.000000  	TCV 	0.000100    	0.000100    	;
  8102458X.8102458Y.1	8102458X        	8102458Y        	63.000000   	TCV 	0.000100    	0.000100    	;
@@ -820,340 +820,339 @@
 
 [DEMANDS]
 ;Junction        	Demand      	Pattern         	Category
- 500199          	0.005674    	NRW             	; 
- 500199          	0.017055    	Residential     	; 
- 500201          	0.016484    	Commercial      	; 
- 500201          	0.027532    	NRW             	; 
- 500201          	0.045743    	Residential     	; 
- 500202          	0.018059    	NRW             	; 
- 500202          	0.032080    	Residential     	; 
- 500203          	0.010956    	NRW             	; 
- 500203          	0.008496    	Residential     	; 
- 500204          	0.020675    	NRW             	; 
- 500204          	0.020383    	Residential     	; 
- 500205          	0.031732    	Commercial      	; 
- 500205          	0.012612    	NRW             	; 
- 500211          	0.000032    	Commercial      	; 
- 500211          	0.019841    	NRW             	; 
- 500211          	0.014740    	Public_Use      	; 
- 500211          	0.012490    	Residential     	; 
- 500213          	0.004450    	NRW             	; 
- 500213          	0.010017    	Residential     	; 
- 500214          	0.008329    	NRW             	; 
- 500214          	0.010207    	Residential     	; 
- 500216          	0.003618    	NRW             	; 
- 500216          	0.012743    	Residential     	; 
- 500217          	0.023070    	NRW             	; 
- 500217          	0.055380    	Residential     	; 
- 500223          	0.006787    	NRW             	; 
- 500223          	0.029481    	Residential     	; 
- 500224          	0.010315    	NRW             	; 
- 500224          	0.031890    	Residential     	; 
- 500226          	0.018171    	NRW             	; 
- 500226          	0.001490    	Park            	; 
- 500228          	0.012927    	NRW             	; 
- 500228          	0.044792    	Residential     	; 
- 500229          	0.014776    	NRW             	; 
- 500229          	0.086890    	Residential     	; 
- 500230          	0.012056    	NRW             	; 
- 500230          	0.034902    	Residential     	; 
- 500231          	0.014658    	NRW             	; 
- 500231          	0.043778    	Residential     	; 
- 500232          	0.003287    	NRW             	; 
- 500232          	0.007259    	Public_Use      	; 
- 500233          	0.004787    	Commercial      	; 
- 500233          	0.012161    	NRW             	; 
- 500233          	0.003804    	Public_Use      	; 
- 500233          	0.025804    	Residential     	; 
- 500234          	0.019550    	NRW             	; 
- 500234          	0.099221    	Residential     	; 
- 500235          	0.010203    	NRW             	; 
- 500235          	0.016991    	Residential     	; 
- 500236          	0.006076    	NRW             	; 
- 500236          	0.016230    	Residential     	; 
- 500237          	0.080930    	Commercial      	; 
- 500237          	0.002513    	NRW             	; 
- 500237          	0.008559    	Residential     	; 
- 500238          	0.009284    	NRW             	; 
- 500238          	0.020383    	Residential     	; 
- 500239          	0.007359    	NRW             	; 
- 500239          	0.013251    	Residential     	; 
- 500243          	0.010894    	NRW             	; 
- 500243          	0.036740    	Residential     	; 
- 500245          	0.007332    	NRW             	; 
- 500245          	0.005230    	Residential     	; 
- 500247          	0.006726    	NRW             	; 
- 500247          	0.000697    	Residential     	; 
- 500252          	0.004248    	NRW             	; 
- 500252          	0.312720    	Residential     	; 
- 500254          	0.004264    	NRW             	; 
- 500254          	0.027262    	Public_Use      	; 
- 500255          	0.007043    	NRW             	; 
- 500255          	0.000349    	Public_Use      	; 
- 500256          	0.011102    	NRW             	; 
- 500256          	0.060801    	Residential     	; 
- 500257          	0.001950    	NRW             	; 
- 500257          	0.022222    	Residential     	; 
- 500258          	0.010733    	NRW             	; 
- 500258          	0.107368    	Residential     	; 
- 500259          	0.000412    	Commercial      	; 
- 500259          	0.048248    	NRW             	; 
- 500259          	0.080074    	Public_Use      	; 
- 500259          	0.136881    	Residential     	; 
- 500262          	0.002644    	NRW             	; 
- 500262          	0.021714    	Residential     	; 
- 500263          	0.010190    	NRW             	; 
- 500263          	0.015913    	Residential     	; 
- 500264          	0.003835    	NRW             	; 
- 500264          	0.027357    	Residential     	; 
- 500267          	0.000809    	NRW             	; 
- 500267          	0.001078    	Public_Use      	; 
- 500268          	0.004625    	NRW             	; 
- 500268          	0.020256    	Residential     	; 
- 500269          	0.010626    	NRW             	; 
- 500269          	0.025614    	Residential     	; 
- 500271          	0.007193    	NRW             	; 
- 500271          	0.027135    	Residential     	; 
- 500272          	0.012238    	NRW             	; 
- 500272          	0.043968    	Residential     	; 
- 500273          	0.018965    	NRW             	; 
- 500273          	0.039467    	Residential     	; 
- 506165          	0.007663    	NRW             	; 
- 506165          	0.016801    	Residential     	; 
- 507004          	0.001427    	Commercial      	; 
- 507004          	0.031605    	Industrial      	; 
- 507004          	0.021503    	NRW             	; 
- 507007          	0.007893    	Commercial      	; 
- 507007          	0.049221    	NRW             	; 
- 507008          	1.231024    	Commercial      	; 
- 507008          	0.008951    	NRW             	; 
- 507009          	0.080740    	Commercial      	; 
- 507009          	0.175800    	LU_Coprice      	; 
- 507009          	0.019225    	NRW             	; 
- 507010          	0.022261    	NRW             	; 
- 507010          	0.014043    	Public_Use      	; 
- 507012          	10.180000   	LU_Abbatoir_2043 	; 
- 507012          	0.001599    	NRW             	; 
- 507235          	0.002629    	NRW             	; 
- 507235          	0.009859    	Residential     	; 
- 507236          	0.004981    	NRW             	; 
- 507236          	0.029386    	Residential     	; 
- 507239          	0.006086    	Commercial      	; 
- 507239          	0.001169    	NRW             	; 
- 507241          	0.022000    	NRW             	; 
- 507241          	0.081025    	Residential     	; 
- 507243          	0.004328    	NRW             	; 
- 507243          	0.007101    	Residential     	; 
- 507246          	0.024054    	NRW             	; 
- 507246          	0.009859    	Public_Use      	; 
- 507246          	0.057218    	Residential     	; 
- 507247          	0.005997    	NRW             	; 
- 507247          	0.016516    	Residential     	; 
- 507248          	0.007145    	NRW             	; 
- 507248          	0.055919    	Residential     	; 
- 507249          	0.014039    	NRW             	; 
- 507249          	0.018164    	Residential     	; 
- 507250          	0.017473    	NRW             	; 
- 507250          	0.008020    	Residential     	; 
- 507251          	0.003159    	NRW             	; 
- 507251          	0.025233    	Residential     	; 
- 507452          	0.033510    	NRW             	; 
- 507452          	0.012870    	Residential     	; 
- 507741          	0.013638    	NRW             	; 
- 507741          	0.203727    	Residential     	; 
- 507742          	0.027164    	NRW             	; 
- 507742          	0.183955    	Residential     	; 
- 507743          	0.004908    	NRW             	; 
- 507743          	0.016611    	Residential     	; 
- 507744          	0.479300    	Commercial      	; 
- 507744          	0.024268    	NRW             	; 
- 507744          	0.260637    	Public_Use      	; 
- 507744          	0.089901    	Residential     	; 
- 507747          	0.017340    	Commercial      	; 
- 507747          	0.007265    	NRW             	; 
- 507747          	0.010651    	Residential     	; 
- 507753          	0.012121    	NRW             	; 
- 507753          	0.039815    	Residential     	; 
- 507754          	0.036772    	Commercial      	; 
- 507754          	0.028960    	NRW             	; 
- 507754          	0.000380    	Public_Use      	; 
- 700102X         	0.005483    	NRW             	; 
- 700102X         	0.005896    	Residential     	; 
- 700103Y         	0.002631    	Commercial      	; 
- 700103Y         	0.007965    	NRW             	; 
- 700103Y         	0.018323    	Residential     	; 
- 700104X         	0.007253    	NRW             	; 
- 700104X         	0.032905    	Residential     	; 
- 700105Y         	0.001807    	Commercial      	; 
- 700105Y         	0.007253    	NRW             	; 
- 700105Y         	0.007925    	Residential     	; 
- 700106X         	0.015563    	NRW             	; 
- 700106X         	0.014645    	Residential     	; 
- 700107X         	0.012645    	NRW             	; 
- 700107X         	0.100901    	Residential     	; 
- 700110X         	0.025346    	NRW             	; 
- 700110X         	0.184684    	Residential     	; 
- 700111Y         	0.015563    	NRW             	; 
- 700111Y         	0.030400    	Residential     	; 
- 700112X         	0.009256    	NRW             	; 
- 700112X         	0.007798    	Residential     	; 
- 700113Y         	0.004902    	NRW             	; 
- 700113Y         	0.020161    	Residential     	; 
- 700116X         	0.010288    	NRW             	; 
- 700116X         	0.068662    	Residential     	; 
- 700117X         	0.009043    	NRW             	; 
- 700117X         	0.028340    	Residential     	; 
- 700121Y         	0.008396    	NRW             	; 
- 700121Y         	0.007291    	Residential     	; 
- 700123Y         	0.009043    	NRW             	; 
- 700123Y         	0.004882    	Residential     	; 
- 700125X         	0.008394    	NRW             	; 
- 700125X         	0.071801    	Residential     	; 
- 700127X         	0.006289    	NRW             	; 
- 700127X         	0.028498    	Residential     	; 
- 700127Y         	0.001735    	NRW             	; 
- 700127Y         	0.009225    	Residential     	; 
- 700128Y         	0.010066    	NRW             	; 
- 700128Y         	0.018037    	Residential     	; 
- 700129X         	0.009207    	NRW             	; 
- 700129X         	0.051417    	Residential     	; 
- 700131X         	0.004796    	NRW             	; 
- 700131X         	0.016325    	Residential     	; 
- 700132Y         	0.002467    	NRW             	; 
- 700132Y         	0.027357    	Residential     	; 
- 700137X         	0.016222    	NRW             	; 
- 700137X         	0.000254    	Park            	; 
- 700137X         	0.026882    	Residential     	; 
- 700138Y         	0.013037    	NRW             	; 
- 700138Y         	0.049103    	Residential     	; 
- 700139Y         	0.009271    	NRW             	; 
- 700139Y         	0.047265    	Residential     	; 
- 700140X         	0.003162    	NRW             	; 
- 700140X         	0.009288    	Residential     	; 
- 700141Y         	0.029793    	NRW             	; 
- 700141Y         	0.097668    	Residential     	; 
- 700142Y         	0.007872    	NRW             	; 
- 700142Y         	0.019432    	Residential     	; 
- 700143X         	0.010733    	NRW             	; 
- 700143X         	0.016674    	Residential     	; 
- 700144Y         	0.007713    	NRW             	; 
- 700144Y         	0.019717    	Residential     	; 
- 700145X         	0.015429    	NRW             	; 
- 700145X         	0.027579    	Residential     	; 
- 700146Y         	0.015429    	NRW             	; 
- 700146Y         	0.004597    	Residential     	; 
- 700147X         	0.013037    	NRW             	; 
- 700147X         	0.028942    	Residential     	; 
- 700148X         	0.029793    	NRW             	; 
- 700148X         	0.098365    	Residential     	; 
- 700150Y         	0.004328    	NRW             	; 
- 700150Y         	0.013314    	Residential     	; 
- 700151Y         	0.019384    	NRW             	; 
- 700151Y         	0.098270    	Residential     	; 
- 700152X         	0.016470    	NRW             	; 
- 700152X         	0.035884    	Residential     	; 
- 700153X         	0.016419    	NRW             	; 
- 700153X         	0.012553    	Residential     	; 
- 700155Y         	0.012372    	NRW             	; 
- 700155Y         	0.022317    	Residential     	; 
- 700156Y         	0.006466    	NRW             	; 
- 700156Y         	0.034933    	Residential     	; 
- 700160X         	0.002378    	Commercial      	; 
- 700160X         	0.010335    	NRW             	; 
- 700162X         	0.004749    	NRW             	; 
- 700162X         	0.024948    	Residential     	; 
- 700166X         	0.005940    	NRW             	; 
- 700166X         	0.005421    	Residential     	; 
- 700168X         	0.007616    	NRW             	; 
- 700168X         	0.014170    	Residential     	; 
- 700169X         	0.012372    	NRW             	; 
- 700169X         	0.039815    	Residential     	; 
- 700171X         	0.008020    	Commercial      	; 
- 700171X         	0.000032    	Industrial      	; 
- 700171X         	0.016727    	NRW             	; 
- 700171X         	0.019844    	Residential     	; 
- 8055439X        	0.004667    	NRW             	; 
- 8055439X        	0.031256    	Residential     	; 
- 8058387X        	0.008527    	Commercial      	; 
- 8058387X        	0.008951    	NRW             	; 
- 8058390X        	0.010873    	Commercial      	; 
- 8058390X        	0.041800    	Industrial      	; 
- 8058390X        	0.026814    	NRW             	; 
- 8058391Y        	0.017283    	NRW             	; 
- 8058391Y        	0.056616    	Residential     	; 
- 8058986X        	0.003614    	Commercial      	; 
- 8058986X        	0.005070    	NRW             	; 
- 8058991Y        	0.003867    	Commercial      	; 
- 8058991Y        	0.011062    	NRW             	; 
- 8058992Y        	0.007616    	NRW             	; 
- 8058992Y        	0.032778    	Residential     	; 
- 8059001X        	0.020578    	NRW             	; 
- 8059001X        	0.097224    	Residential     	; 
- 8059020X        	0.000318    	NRW             	; 
- 8059020X        	0.014297    	Residential     	; 
- 8059020Y        	0.013023    	NRW             	; 
- 8059020Y        	0.022824    	Residential     	; 
- 8059030X        	0.010848    	NRW             	; 
- 8059030X        	0.013187    	Residential     	; 
- 8059032X        	0.001456    	NRW             	; 
- 8059032X        	0.010493    	Residential     	; 
- 8059032Y        	0.004125    	NRW             	; 
- 8059032Y        	0.006816    	Residential     	; 
- 8059033X        	0.004250    	NRW             	; 
- 8059033X        	0.009573    	Residential     	; 
- 8059034Y        	0.013404    	NRW             	; 
- 8059034Y        	0.022729    	Residential     	; 
- 8059047Y        	0.002086    	NRW             	; 
- 8059047Y        	0.045680    	Residential     	; 
- 8059048X        	0.004625    	NRW             	; 
- 8059048X        	0.002504    	Residential     	; 
- 8059055Y        	0.008810    	NRW             	; 
- 8059055Y        	0.020288    	Residential     	; 
- 8059056X        	0.000917    	NRW             	; 
- 8059056X        	0.004533    	Residential     	; 
- 8059085X        	0.024268    	NRW             	; 
- 8059085X        	0.006150    	Public_Use      	; 
- 8059085X        	0.044539    	Residential     	; 
- 8059086Y        	0.009906    	NRW             	; 
- 8059086Y        	0.015913    	Residential     	; 
- 8059087Y        	0.001367    	NRW             	; 
- 8059087Y        	0.012838    	Residential     	; 
- 8059089Y        	0.011102    	NRW             	; 
- 8059089Y        	0.033317    	Residential     	; 
- 8059091Y        	0.002283    	NRW             	; 
- 8059091Y        	0.009383    	Residential     	; 
- 8082528         	0.004052    	NRW             	; 
- 8082528         	0.015565    	Residential     	; 
- 8087725         	0.007988    	NRW             	; 
- 8087725         	0.015818    	Residential     	; 
- 8087726         	0.010211    	NRW             	; 
- 8087726         	0.019971    	Residential     	; 
- 8087732         	0.007841    	NRW             	; 
- 8087732         	0.042637    	Residential     	; 
- 8087733         	0.009886    	NRW             	; 
- 8087733         	0.038547    	Residential     	; 
- 8087734         	0.006757    	NRW             	; 
- 8087734         	0.004343    	Residential     	; 
- 8087735         	0.005093    	NRW             	; 
- 8087735         	0.013790    	Residential     	; 
- 8093040         	4.222250    	LU_Nestle       	; 
- 8093040         	0.002161    	NRW             	; 
- 8096701Y        	0.011093    	NRW             	; 
- 8096701Y        	0.025170    	Residential     	; 
- 8099156         	0.016389    	NRW             	; 
- 8099156         	0.014138    	Residential     	; 
- 8101041X        	0.004099    	NRW             	; 
- 8101041X        	0.002536    	Residential     	; 
- 8102457         	0.013573    	NRW             	; 
- 8102457         	0.026660    	Residential     	; 
- 8102458Y        	0.005649    	NRW             	; 
- 8102458Y        	0.029544    	Residential     	; 
+ 500199          	0.005674    	NRW             	;  
+ 500199          	0.017055    	Residential     	;  
+ 500201          	0.016484    	Commercial      	;  
+ 500201          	0.027532    	NRW             	;  
+ 500201          	0.045743    	Residential     	;  
+ 500202          	0.018059    	NRW             	;  
+ 500202          	0.032080    	Residential     	;  
+ 500203          	0.010956    	NRW             	;  
+ 500203          	0.008496    	Residential     	;  
+ 500204          	0.020675    	NRW             	;  
+ 500204          	0.020383    	Residential     	;  
+ 500205          	0.031732    	Commercial      	;  
+ 500205          	0.012612    	NRW             	;  
+ 500211          	0.000032    	Commercial      	;  
+ 500211          	0.019841    	NRW             	;  
+ 500211          	0.014740    	Public_Use      	;  
+ 500211          	0.012490    	Residential     	;  
+ 500213          	0.004450    	NRW             	;  
+ 500213          	0.010017    	Residential     	;  
+ 500214          	0.008329    	NRW             	;  
+ 500214          	0.010207    	Residential     	;  
+ 500216          	0.003618    	NRW             	;  
+ 500216          	0.012743    	Residential     	;  
+ 500217          	0.023070    	NRW             	;  
+ 500217          	0.055380    	Residential     	;  
+ 500223          	0.006787    	NRW             	;  
+ 500223          	0.029481    	Residential     	;  
+ 500224          	0.010315    	NRW             	;  
+ 500224          	0.031890    	Residential     	;  
+ 500226          	0.018171    	NRW             	;  
+ 500226          	0.001490    	Park            	;  
+ 500228          	0.012927    	NRW             	;  
+ 500228          	0.044792    	Residential     	;  
+ 500229          	0.014776    	NRW             	;  
+ 500229          	0.086890    	Residential     	;  
+ 500230          	0.012056    	NRW             	;  
+ 500230          	0.034902    	Residential     	;  
+ 500231          	0.014658    	NRW             	;  
+ 500231          	0.043778    	Residential     	;  
+ 500232          	0.003287    	NRW             	;  
+ 500232          	0.007259    	Public_Use      	;  
+ 500233          	0.004787    	Commercial      	;  
+ 500233          	0.012161    	NRW             	;  
+ 500233          	0.003804    	Public_Use      	;  
+ 500233          	0.025804    	Residential     	;  
+ 500234          	0.019550    	NRW             	;  
+ 500234          	0.099221    	Residential     	;  
+ 500235          	0.010203    	NRW             	;  
+ 500235          	0.016991    	Residential     	;  
+ 500236          	0.006076    	NRW             	;  
+ 500236          	0.016230    	Residential     	;  
+ 500237          	0.080930    	Commercial      	;  
+ 500237          	0.002513    	NRW             	;  
+ 500237          	0.008559    	Residential     	;  
+ 500238          	0.009284    	NRW             	;  
+ 500238          	0.020383    	Residential     	;  
+ 500239          	0.007359    	NRW             	;  
+ 500239          	0.013251    	Residential     	;  
+ 500243          	0.010894    	NRW             	;  
+ 500243          	0.036740    	Residential     	;  
+ 500245          	0.007332    	NRW             	;  
+ 500245          	0.005230    	Residential     	;  
+ 500247          	0.006726    	NRW             	;  
+ 500247          	0.000697    	Residential     	;  
+ 500252          	0.004248    	NRW             	;  
+ 500252          	0.312720    	Residential     	;  
+ 500254          	0.004264    	NRW             	;  
+ 500254          	0.027262    	Public_Use      	;  
+ 500255          	0.007043    	NRW             	;  
+ 500255          	0.000349    	Public_Use      	;  
+ 500256          	0.011102    	NRW             	;  
+ 500256          	0.060801    	Residential     	;  
+ 500257          	0.001950    	NRW             	;  
+ 500257          	0.022222    	Residential     	;  
+ 500258          	0.010733    	NRW             	;  
+ 500258          	0.107368    	Residential     	;  
+ 500259          	0.000412    	Commercial      	;  
+ 500259          	0.048248    	NRW             	;  
+ 500259          	0.080074    	Public_Use      	;  
+ 500259          	0.136881    	Residential     	;  
+ 500262          	0.002644    	NRW             	;  
+ 500262          	0.021714    	Residential     	;  
+ 500263          	0.010190    	NRW             	;  
+ 500263          	0.015913    	Residential     	;  
+ 500264          	0.003835    	NRW             	;  
+ 500264          	0.027357    	Residential     	;  
+ 500267          	0.000809    	NRW             	;  
+ 500267          	0.001078    	Public_Use      	;  
+ 500268          	0.004625    	NRW             	;  
+ 500268          	0.020256    	Residential     	;  
+ 500269          	0.010626    	NRW             	;  
+ 500269          	0.025614    	Residential     	;  
+ 500271          	0.007193    	NRW             	;  
+ 500271          	0.027135    	Residential     	;  
+ 500272          	0.012238    	NRW             	;  
+ 500272          	0.043968    	Residential     	;  
+ 500273          	0.018965    	NRW             	;  
+ 500273          	0.039467    	Residential     	;  
+ 506165          	0.007663    	NRW             	;  
+ 506165          	0.016801    	Residential     	;  
+ 507004          	0.001427    	Commercial      	;  
+ 507004          	0.031605    	Industrial      	;  
+ 507004          	0.021503    	NRW             	;  
+ 507007          	0.007893    	Commercial      	;  
+ 507007          	0.049221    	NRW             	;  
+ 507008          	1.231024    	Commercial      	;  
+ 507008          	0.008951    	NRW             	;  
+ 507009          	0.080740    	Commercial      	;  
+ 507009          	0.175800    	LU_Coprice      	;  
+ 507009          	0.019225    	NRW             	;  
+ 507010          	0.022261    	NRW             	;  
+ 507010          	0.014043    	Public_Use      	;  
+ 507012          	10.180000   	LU_Abbatoir_2043 	;  
+ 507012          	0.001599    	NRW             	;  
+ 507235          	0.002629    	NRW             	;  
+ 507235          	0.009859    	Residential     	;  
+ 507236          	0.004981    	NRW             	;  
+ 507236          	0.029386    	Residential     	;  
+ 507239          	0.006086    	Commercial      	;  
+ 507239          	0.001169    	NRW             	;  
+ 507241          	0.022000    	NRW             	;  
+ 507241          	0.081025    	Residential     	;  
+ 507243          	0.004328    	NRW             	;  
+ 507243          	0.007101    	Residential     	;  
+ 507246          	0.024054    	NRW             	;  
+ 507246          	0.009859    	Public_Use      	;  
+ 507246          	0.057218    	Residential     	;  
+ 507247          	0.005997    	NRW             	;  
+ 507247          	0.016516    	Residential     	;  
+ 507248          	0.007145    	NRW             	;  
+ 507248          	0.055919    	Residential     	;  
+ 507249          	0.014039    	NRW             	;  
+ 507249          	0.018164    	Residential     	;  
+ 507250          	0.017473    	NRW             	;  
+ 507250          	0.008020    	Residential     	;  
+ 507251          	0.003159    	NRW             	;  
+ 507251          	0.025233    	Residential     	;  
+ 507452          	0.033510    	NRW             	;  
+ 507452          	0.012870    	Residential     	;  
+ 507741          	0.013638    	NRW             	;  
+ 507741          	0.203727    	Residential     	;  
+ 507742          	0.027164    	NRW             	;  
+ 507742          	0.183955    	Residential     	;  
+ 507743          	0.004908    	NRW             	;  
+ 507743          	0.016611    	Residential     	;  
+ 507744          	0.479300    	Commercial      	;  
+ 507744          	0.024268    	NRW             	;  
+ 507744          	0.260637    	Public_Use      	;  
+ 507744          	0.089901    	Residential     	;  
+ 507747          	0.017340    	Commercial      	;  
+ 507747          	0.007265    	NRW             	;  
+ 507747          	0.010651    	Residential     	;  
+ 507753          	0.012121    	NRW             	;  
+ 507753          	0.039815    	Residential     	;  
+ 507754          	0.036772    	Commercial      	;  
+ 507754          	0.028960    	NRW             	;  
+ 507754          	0.000380    	Public_Use      	;  
+ 700102X         	0.005483    	NRW             	;  
+ 700102X         	0.005896    	Residential     	;  
+ 700103Y         	0.002631    	Commercial      	;  
+ 700103Y         	0.007965    	NRW             	;  
+ 700103Y         	0.018323    	Residential     	;  
+ 700104X         	0.007253    	NRW             	;  
+ 700104X         	0.032905    	Residential     	;  
+ 700105Y         	0.001807    	Commercial      	;  
+ 700105Y         	0.007253    	NRW             	;  
+ 700105Y         	0.007925    	Residential     	;  
+ 700106X         	0.015563    	NRW             	;  
+ 700106X         	0.014645    	Residential     	;  
+ 700107X         	0.012645    	NRW             	;  
+ 700107X         	0.100901    	Residential     	;  
+ 700110X         	0.025346    	NRW             	;  
+ 700110X         	0.184684    	Residential     	;  
+ 700111Y         	0.015563    	NRW             	;  
+ 700111Y         	0.030400    	Residential     	;  
+ 700112X         	0.009256    	NRW             	;  
+ 700112X         	0.007798    	Residential     	;  
+ 700113Y         	0.004902    	NRW             	;  
+ 700113Y         	0.020161    	Residential     	;  
+ 700116X         	0.010288    	NRW             	;  
+ 700116X         	0.068662    	Residential     	;  
+ 700117X         	0.009043    	NRW             	;  
+ 700117X         	0.028340    	Residential     	;  
+ 700121Y         	0.008396    	NRW             	;  
+ 700121Y         	0.007291    	Residential     	;  
+ 700123Y         	0.009043    	NRW             	;  
+ 700123Y         	0.004882    	Residential     	;  
+ 700125X         	0.008394    	NRW             	;  
+ 700125X         	0.071801    	Residential     	;  
+ 700127X         	0.006289    	NRW             	;  
+ 700127X         	0.028498    	Residential     	;  
+ 700127Y         	0.001735    	NRW             	;  
+ 700127Y         	0.009225    	Residential     	;  
+ 700128Y         	0.010066    	NRW             	;  
+ 700128Y         	0.018037    	Residential     	;  
+ 700129X         	0.009207    	NRW             	;  
+ 700129X         	0.051417    	Residential     	;  
+ 700131X         	0.004796    	NRW             	;  
+ 700131X         	0.016325    	Residential     	;  
+ 700132Y         	0.002467    	NRW             	;  
+ 700132Y         	0.027357    	Residential     	;  
+ 700137X         	0.016222    	NRW             	;  
+ 700137X         	0.000254    	Park            	;  
+ 700137X         	0.026882    	Residential     	;  
+ 700138Y         	0.013037    	NRW             	;  
+ 700138Y         	0.049103    	Residential     	;  
+ 700139Y         	0.009271    	NRW             	;  
+ 700139Y         	0.047265    	Residential     	;  
+ 700140X         	0.003162    	NRW             	;  
+ 700140X         	0.009288    	Residential     	;  
+ 700141Y         	0.029793    	NRW             	;  
+ 700141Y         	0.097668    	Residential     	;  
+ 700142Y         	0.007872    	NRW             	;  
+ 700142Y         	0.019432    	Residential     	;  
+ 700143X         	0.010733    	NRW             	;  
+ 700143X         	0.016674    	Residential     	;  
+ 700144Y         	0.007713    	NRW             	;  
+ 700144Y         	0.019717    	Residential     	;  
+ 700145X         	0.015429    	NRW             	;  
+ 700145X         	0.027579    	Residential     	;  
+ 700146Y         	0.015429    	NRW             	;  
+ 700146Y         	0.004597    	Residential     	;  
+ 700147X         	0.013037    	NRW             	;  
+ 700147X         	0.028942    	Residential     	;  
+ 700148X         	0.029793    	NRW             	;  
+ 700148X         	0.098365    	Residential     	;  
+ 700150Y         	0.004328    	NRW             	;  
+ 700150Y         	0.013314    	Residential     	;  
+ 700151Y         	0.019384    	NRW             	;  
+ 700151Y         	0.098270    	Residential     	;  
+ 700152X         	0.016470    	NRW             	;  
+ 700152X         	0.035884    	Residential     	;  
+ 700153X         	0.016419    	NRW             	;  
+ 700153X         	0.012553    	Residential     	;  
+ 700155Y         	0.012372    	NRW             	;  
+ 700155Y         	0.022317    	Residential     	;  
+ 700156Y         	0.006466    	NRW             	;  
+ 700156Y         	0.034933    	Residential     	;  
+ 700160X         	0.002378    	Commercial      	;  
+ 700160X         	0.010335    	NRW             	;  
+ 700162X         	0.004749    	NRW             	;  
+ 700162X         	0.024948    	Residential     	;  
+ 700166X         	0.005940    	NRW             	;  
+ 700166X         	0.005421    	Residential     	;  
+ 700168X         	0.007616    	NRW             	;  
+ 700168X         	0.014170    	Residential     	;  
+ 700169X         	0.012372    	NRW             	;  
+ 700169X         	0.039815    	Residential     	;  
+ 700171X         	0.008020    	Commercial      	;  
+ 700171X         	0.000032    	Industrial      	;  
+ 700171X         	0.016727    	NRW             	;  
+ 700171X         	0.019844    	Residential     	;  
+ 8055439X        	0.004667    	NRW             	;  
+ 8055439X        	0.031256    	Residential     	;  
+ 8058387X        	0.008527    	Commercial      	;  
+ 8058387X        	0.008951    	NRW             	;  
+ 8058390X        	0.010873    	Commercial      	;  
+ 8058390X        	0.041800    	Industrial      	;  
+ 8058390X        	0.026814    	NRW             	;  
+ 8058391Y        	0.017283    	NRW             	;  
+ 8058391Y        	0.056616    	Residential     	;  
+ 8058986X        	0.003614    	Commercial      	;  
+ 8058986X        	0.005070    	NRW             	;  
+ 8058991Y        	0.003867    	Commercial      	;  
+ 8058991Y        	0.011062    	NRW             	;  
+ 8058992Y        	0.007616    	NRW             	;  
+ 8058992Y        	0.032778    	Residential     	;  
+ 8059001X        	0.020578    	NRW             	;  
+ 8059001X        	0.097224    	Residential     	;  
+ 8059020X        	0.000318    	NRW             	;  
+ 8059020X        	0.014297    	Residential     	;  
+ 8059020Y        	0.013023    	NRW             	;  
+ 8059020Y        	0.022824    	Residential     	;  
+ 8059030X        	0.010848    	NRW             	;  
+ 8059030X        	0.013187    	Residential     	;  
+ 8059032X        	0.001456    	NRW             	;  
+ 8059032X        	0.010493    	Residential     	;  
+ 8059032Y        	0.004125    	NRW             	;  
+ 8059032Y        	0.006816    	Residential     	;  
+ 8059033X        	0.004250    	NRW             	;  
+ 8059033X        	0.009573    	Residential     	;  
+ 8059034Y        	0.013404    	NRW             	;  
+ 8059034Y        	0.022729    	Residential     	;  
+ 8059047Y        	0.002086    	NRW             	;  
+ 8059047Y        	0.045680    	Residential     	;  
+ 8059048X        	0.004625    	NRW             	;  
+ 8059048X        	0.002504    	Residential     	;  
+ 8059055Y        	0.008810    	NRW             	;  
+ 8059055Y        	0.020288    	Residential     	;  
+ 8059056X        	0.000917    	NRW             	;  
+ 8059056X        	0.004533    	Residential     	;  
+ 8059085X        	0.024268    	NRW             	;  
+ 8059085X        	0.006150    	Public_Use      	;  
+ 8059085X        	0.044539    	Residential     	;  
+ 8059086Y        	0.009906    	NRW             	;  
+ 8059086Y        	0.015913    	Residential     	;  
+ 8059087Y        	0.001367    	NRW             	;  
+ 8059087Y        	0.012838    	Residential     	;  
+ 8059089Y        	0.011102    	NRW             	;  
+ 8059089Y        	0.033317    	Residential     	;  
+ 8059091Y        	0.002283    	NRW             	;  
+ 8059091Y        	0.009383    	Residential     	;  
+ 8082528         	0.004052    	NRW             	;  
+ 8082528         	0.015565    	Residential     	;  
+ 8087725         	0.007988    	NRW             	;  
+ 8087725         	0.015818    	Residential     	;  
+ 8087726         	0.010211    	NRW             	;  
+ 8087726         	0.019971    	Residential     	;  
+ 8087732         	0.007841    	NRW             	;  
+ 8087732         	0.042637    	Residential     	;  
+ 8087733         	0.009886    	NRW             	;  
+ 8087733         	0.038547    	Residential     	;  
+ 8087734         	0.006757    	NRW             	;  
+ 8087734         	0.004343    	Residential     	;  
+ 8087735         	0.005093    	NRW             	;  
+ 8087735         	0.013790    	Residential     	;  
+ 8093040         	4.222250    	LU_Nestle       	;  
+ 8093040         	0.002161    	NRW             	;  
+ 8096701Y        	0.011093    	NRW             	;  
+ 8096701Y        	0.025170    	Residential     	;  
+ 8099156         	0.016389    	NRW             	;  
+ 8099156         	0.014138    	Residential     	;  
+ 8101041X        	0.004099    	NRW             	;  
+ 8101041X        	0.002536    	Residential     	;  
+ 8102457         	0.013573    	NRW             	;  
+ 8102457         	0.026660    	Residential     	;  
+ 8102458Y        	0.005649    	NRW             	;  
+ 8102458Y        	0.029544    	Residential     	;  
 
 [STATUS]
 ;ID              	Status/Setting
  GHD_003.GHD_005.1_1	Closed
  GHD_003.GHD_005.1_2	Closed
- 8093043X.8093043Y.1	Closed
 
 [PATTERNS]
 ;ID              	Multipliers
@@ -1601,7 +1600,7 @@
 
 [CURVES]
 ;ID              	X-Value     	Y-Value
-;PUMP: Pump Curves
+;PUMP: PUMP: Pump Curves
  GHD_003.GHD_004.1_1	0.000000    	58.000000   
  GHD_003.GHD_004.1_1	20.000000   	53.000000   
  GHD_003.GHD_004.1_1	40.000000   	48.000000   
@@ -1610,7 +1609,7 @@
  GHD_003.GHD_004.1_1	100.000000  	36.000000   
  GHD_003.GHD_004.1_1	120.000000  	33.000000   
  GHD_003.GHD_004.1_1	140.000000  	28.000000   
-;PUMP: 
+;PUMP: PUMP: 
  GHD_003.GHD_004.1_2	0.000000    	58.000000   
  GHD_003.GHD_004.1_2	20.000000   	53.000000   
  GHD_003.GHD_004.1_2	40.000000   	48.000000   
@@ -1619,7 +1618,7 @@
  GHD_003.GHD_004.1_2	100.000000  	36.000000   
  GHD_003.GHD_004.1_2	120.000000  	33.000000   
  GHD_003.GHD_004.1_2	140.000000  	28.000000   
-;PUMP: 
+;PUMP: PUMP: 
  GHD_003.GHD_005.1_1	0.000000    	23.200001   
  GHD_003.GHD_005.1_1	10.000000   	23.100000   
  GHD_003.GHD_005.1_1	20.000000   	23.000000   
@@ -1627,7 +1626,7 @@
  GHD_003.GHD_005.1_1	40.000000   	20.000000   
  GHD_003.GHD_005.1_1	42.000000   	19.200001   
  GHD_003.GHD_005.1_1	50.000000   	15.200000   
-;PUMP: 
+;PUMP: PUMP: 
  GHD_003.GHD_005.1_2	0.000000    	23.200001   
  GHD_003.GHD_005.1_2	10.000000   	23.100000   
  GHD_003.GHD_005.1_2	20.000000   	23.000000   
@@ -1639,6 +1638,7 @@
 [CONTROLS]
 ;No CONTROLS are exported
 ;
+
 
 [RULES]
 RULE 1
@@ -1656,6 +1656,7 @@ THEN PUMP GHD_003.GHD_004.1_2 STATUS IS CLOSED
 RULE 4
 IF TANK GHD_004 LEVEL BELOW 6
 THEN PUMP GHD_003.GHD_004.1_2 STATUS IS OPEN
+
 
 
 [ENERGY]
@@ -1689,15 +1690,15 @@ THEN PUMP GHD_003.GHD_004.1_2 STATUS IS OPEN
 ;Tank            	Model
 
 [TIMES]
- Duration           	24
- Hydraulic Timestep 	0:05
- Quality Timestep   	0:05
+ Duration           	24:00 
+ Hydraulic Timestep 	0:05 
+ Quality Timestep   	0:05 
  Pattern Timestep   	0:05 
- Pattern Start      	0:00
- Report Timestep    	0:05
- Report Start       	0:00
+ Pattern Start      	0:00 
+ Report Timestep    	0:05 
+ Report Start       	0:00 
  Start ClockTime    	12 am
- Statistic          	None
+ Statistic          	NONE
 
 [REPORT]
  Status             	No
@@ -2852,7 +2853,6 @@ GHD_022.700159Y.1	315643.444        	5986145.739
 8059790X.8059790Y.1	315413.568        	5985847.039       
 8087727X.8087727Y.1	316241.066        	5986678.479       
 8087728X.8087728Y.1	316241.822        	5986771.385       
-8093043X.8093043Y.1	315638.743        	5986166.683       
 8096701X.8096701Y.1	316488.182        	5986514.842       
 8101041X.8101041Y.1	316351.726        	5986796.844       
 8102458X.8102458Y.1	316241.383        	5986907.232       
