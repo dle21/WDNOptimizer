@@ -32,7 +32,6 @@ existing_penalties = nwke.penalties(min_p_req, max_hl_req)
 print(f'\n\nOriginal network cost: ${existing_totex:,.2f}, Penalties: ${existing_penalties:,.2f}')
 available_diameters = nwke.pipecosts['Size'].unique()
 
-plt.scatter(existing_totex, existing_penalties, 20, 'r', 'd')
 s = time.time()
 print("GA optimisation in process…")
 
@@ -56,35 +55,46 @@ problem.types[:] = Integer(0, len(available_diameters)-1)
 problem.function = Min_Cost_GA
 problem.directions[:] = Problem.MINIMIZE
 log_archive = LoggingArchive()
-algorithm = NSGAII(problem, population_size=100, archive=log_archive)
+algorithm = NSGAII(problem, population_size=50, archive=log_archive)
 algorithm.run(generations)
 
+# Plot the results
+# Manual
+plt.scatter(existing_totex, existing_penalties, 20, 'r', 'd')
 
-costs = [s.objectives[0] for s in algorithm.archive.log]
-h_penalties = [s.objectives[1] for s in algorithm.archive.log]
-plt.scatter(costs, h_penalties)
+# All dominated solutions
+non_dominated_soln = nondominated(algorithm.result)
+dominated_soln = [s for s in algorithm.archive.log if s not in non_dominated_soln]
+costs = [s.objectives[0] for s in dominated_soln]
+h_penalties = [s.objectives[1] for s in dominated_soln]
+plt.scatter(costs, h_penalties, color='k', alpha=0.2)
+
+# Pareto
+pareto_costs = [s.objectives[0] for s in non_dominated_soln]
+pareto_h_penalties = [s.objectives[1] for s in non_dominated_soln]
+plt.scatter(pareto_costs, pareto_h_penalties, s=50, color='g', marker='x')
+
 plt.gca().set_yticklabels(['${:,.0f}'.format(x) for x in plt.gca().get_yticks()])
+plt.gca().set_xticklabels(['${:,.0f}'.format(x) for x in plt.gca().get_xticks()])
+plt.xscale('log')
+plt.yscale('log')
 plt.title(f'Pareto Front {generations} gens')
 plt.xlabel('Cost ($)')
 plt.ylabel('Hydraulic Penalties ($)')
+plt.legend(['Manual', 'Trialed solutions', 'Pareto front solutions'])
 plt.show()
 end_time = time.time()
 
 # Results
-non_dominated_soln = nondominated(algorithm.result)
-
 diameters_result = [available_diameters[indexer] for indexer in
 [problem.types[0].decode(binary_result) for binary_result in non_dominated_soln[0].variables]]
 
 network_cost_result = non_dominated_soln[0].objectives[0]
 
-min_p_result = non_dominated_soln[0].constraints[0] + min_p_req
-
 print('The Nondominated Solution has the following decision variables:')
 # for pipe, diameter in enumerate(diameters_result):
 #     print(f'Pipe {pipe} diameter = {diameter}mm')
 print(f'\nThe total annual expenditure for this network configuration is ${network_cost_result:,.2f}')
-print(f'The Minimum Pressure in the network is: {min_p_result:.2f}mwc')
 print(f'\nExecution time = {(end_time - start_time)/60:.2f} minutes')
 
 # Creating the Optimised network
@@ -98,6 +108,5 @@ results_dict = {f'Pipe_{pipe}_diameters': [available_diameters[indexer] for inde
                 [solution.variables[idx] for solution in algorithm.result]]] for idx, pipe in enumerate(nwke.pipes)}
 
 results_dict['objectives'] = [solution.objectives[0] for solution in algorithm.result]
-results_dict['constraints'] = [solution.constraints[0] for solution in algorithm.result]
 
 results_df = pd.DataFrame.from_dict(results_dict).to_csv(f'NSGA_Pipe_Diameter_{generations}.csv')

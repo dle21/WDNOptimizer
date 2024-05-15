@@ -112,7 +112,8 @@ class NetworkEvaluator:
     
     def penalties(self, min_p_req, max_hl_req):
         # min_p = self.pressure_results.loc[:, self.incl_nodes].loc[:, [j for j in self.junctions if j in self.incl_nodes[self.incl_nodes]]].min()
-        p_penalty = self.pressure_results.min()[self.pressure_results.min() < 20].apply(lambda x: 400000 if x < 0 else (min_p_req - x) * 20000).sum()
+        # 400000 if x < 0 else 
+        p_penalty = self.pressure_results.min()[self.pressure_results.min() < min_p_req].apply(lambda x: (min_p_req - x) * 20000).sum()
         
         # min_hl = self.headloss_results.loc[:, [j for j in self.junctions if j in self.incl_nodes[self.incl_nodes]]].min()
         hl_penalty = ((self.headloss_results.max() * 1000 - max_hl_req) * 20000).apply(lambda x: max(x, 0)).sum()
