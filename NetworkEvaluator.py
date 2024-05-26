@@ -1,11 +1,10 @@
 import wntr
 import pandas as pd
-import numpy as np
 import math
 
 class NetworkEvaluator:
 
-    def __init__(self, input_network, input_sheet, min_p_req) -> None:
+    def __init__(self, input_network, input_sheet) -> None:
         self.input_sheet = input_sheet
         self._get_cost_basis()
         self.wn = wntr.network.WaterNetworkModel(input_network)
@@ -21,9 +20,8 @@ class NetworkEvaluator:
         self.valves = self.wn.valve_name_list
         self.pumps = self.wn.pump_name_list
 
-        self.min_p_req = min_p_req
+        self.original_results = None
         self.run_sim()
-        # self.incl_nodes = self.pressure_results.min() >= self.min_p_req
     
     def _get_cost_basis(self):
         self.pipecosts = pd.read_excel(self.input_sheet, sheet_name='Pipes')
@@ -62,9 +60,9 @@ class NetworkEvaluator:
         pipe_df = pd.DataFrame.from_dict(pipe_dict)
         self.pipecosts = self.pipecosts.sort_values(by='Size')
         pipe_df = pipe_df.sort_values(by="Size")
-        pipe_df = pd.merge_asof(pipe_df, self.pipecosts, left_on="Size", right_on="Size", direction="nearest")
-        pipe_df['Total Cost\n($ USD)'] = pipe_df['PS4 - TDC $/m'] * pipe_df['Pipe_Length\n(m)']
-        total_pipe_inv_cost = pipe_df["Total Cost\n($ USD)"].sum()
+        self.pipe_df = pd.merge_asof(pipe_df, self.pipecosts, left_on="Size", right_on="Size", direction="nearest")
+        self.pipe_df['Total Cost\n($ USD)'] = self.pipe_df['PS4 - TDC $/m'] * self.pipe_df['Pipe_Length\n(m)']
+        total_pipe_inv_cost = self.pipe_df["Total Cost\n($ USD)"].sum()
         
         #PUMPS
         pump_df = pd.DataFrame.from_dict({'Capacity (l/s)': [self.wn.get_link(pump).get_design_flow() * 1000 / 2 for pump in self.pumps]})
@@ -75,16 +73,54 @@ class NetworkEvaluator:
         total_pump_inv_cost = pump_df["TPC $/Item"].sum() / 2
         
         #VALVES
-        total_valve_inv_cost = sum([(1000.0 + 30* (self.wn.get_link(valve).diameter * 1000)) for valve in self.valves])
+        total_valve_inv_cost = sum([(1000.0 + 30 * (self.wn.get_link(valve).diameter * 1000)) for valve in self.valves])
         
         #TANKS
         total_tank_inv_cost = sum([300_000 + 150 * math.pi * self.wn.get_node(tank).diameter ** 2 / 4 * self.wn.get_node(tank).max_level for tank in self.tanks])
         
         return [total_pipe_inv_cost, total_pump_inv_cost, total_valve_inv_cost, total_tank_inv_cost]
+    
+    def proposed_capex(self, old_pipes):
+        # PIPES
+        pipe_dict = {
+            "Pipe_Name": self.pipes,
+            "Size": [self.wn.get_link(pipe).diameter * 1000 for pipe in self.pipes],
+            "Pipe_Length\n(m)": [self.wn.get_link(pipe).length for pipe in self.pipes],
+        }
+        
+        pipe_df = pd.DataFrame.from_dict(pipe_dict)
+        self.pipecosts = self.pipecosts.sort_values(by='Size')
+        pipe_df = pipe_df.sort_values(by="Size")
+        self.pipe_df = pd.merge_asof(pipe_df, self.pipecosts, left_on="Size", right_on="Size", direction="nearest")
+        self.pipe_df['Total Cost\n($ USD)'] = self.pipe_df['PS4 - TDC $/m'] * self.pipe_df['Pipe_Length\n(m)']
+        # total_pipe_inv_cost = self.pipe_df["Total Cost\n($ USD)"].sum()
+        
+        merged_df = self.pipe_df.merge(old_pipes, on='Pipe_Name', how='left', suffixes=('_Proposed', '_Existing'))
+        total_pipe_inv_cost = merged_df[(merged_df['Size_Proposed'] - merged_df['Size_Existing']).round(1) != 0.0]['Total Cost\n($ USD)_Proposed'].sum()
+        # #PUMPS
+        # pump_df = pd.DataFrame.from_dict({'Capacity (l/s)': [self.wn.get_link(pump).get_design_flow() * 1000 / 2 for pump in self.pumps]})
+        # self.pump_cost = self.pump_cost.sort_values(by='Capacity (l/s)')
+        # pump_df = pump_df.sort_values(by="Capacity (l/s)")
+        # pump_df = pd.merge_asof(pump_df, self.pump_cost, left_on="Capacity (l/s)", right_on="Capacity (l/s)", direction="nearest")
+        # # TODO remove /2
+        # total_pump_inv_cost = pump_df["TPC $/Item"].sum() / 2
+        
+        # #VALVES
+        # total_valve_inv_cost = sum([(1000.0 + 30 * (self.wn.get_link(valve).diameter * 1000)) for valve in self.valves])
+        
+        # #TANKS
+        # total_tank_inv_cost = sum([300_000 + 150 * math.pi * self.wn.get_node(tank).diameter ** 2 / 4 * self.wn.get_node(tank).max_level for tank in self.tanks])
+        # print([total_pipe_inv_cost, total_pump_inv_cost, total_valve_inv_cost, total_tank_inv_cost])
+        # return [total_pipe_inv_cost, total_pump_inv_cost, total_valve_inv_cost, total_tank_inv_cost]
+    
+        return [total_pipe_inv_cost, 0, 0, 0]
 
-    def totex_func(self, existing_capex):
-        total_pipe_inv_cost, total_pump_inv_cost, total_valve_inv_cost, total_tank_inv_cost = self.capex()
-        inv_cost = total_pipe_inv_cost + total_pump_inv_cost + total_valve_inv_cost + total_tank_inv_cost - existing_capex
+    def totex_func(self, old_pipes=None):
+        if old_pipes is not None:
+            total_pipe_inv_cost, total_pump_inv_cost, total_valve_inv_cost, total_tank_inv_cost = self.proposed_capex(old_pipes)
+        else:
+            total_pipe_inv_cost, total_pump_inv_cost, total_valve_inv_cost, total_tank_inv_cost = self.capex()
+        inv_cost = total_pipe_inv_cost + total_pump_inv_cost + total_valve_inv_cost + total_tank_inv_cost
         
         #OPERATIONAL COST
         # Energy Calculations
@@ -100,11 +136,10 @@ class NetworkEvaluator:
                     (total_pipe_inv_cost * self.om.loc[self.om['Component'] == 'Pipes', 'Percentage of CAPEX '].values[0] + \
                     total_pump_inv_cost * self.om.loc[self.om['Component'] == 'Pump stations', 'Percentage of CAPEX '].values[0] + \
                     total_tank_inv_cost * self.om.loc[self.om['Component'] == 'Tanks', 'Percentage of CAPEX '].values[0])
-        
         # Annuity
         n = self.opex.loc[self.opex['Variable'] == 'Payback period', 'Value'].values[0]
         r = self.opex.loc[self.opex['Variable'] == 'Annual Interest rate', 'Value'].values[0]
-        annuity = (r/100*(1+r/100)**n)/((1+r/100)**n-1)*(inv_cost)
+        annuity = (r*(1+r)**n)/((1+r)**n-1)*(inv_cost)
         
         #Total Annual Expenditure
         total_annual_expenditure = total_OM + annuity
@@ -112,11 +147,15 @@ class NetworkEvaluator:
     
     def penalties(self, min_p_req, max_hl_req):
         # min_p = self.pressure_results.loc[:, self.incl_nodes].loc[:, [j for j in self.junctions if j in self.incl_nodes[self.incl_nodes]]].min()
-        # 400000 if x < 0 else 
-        p_penalty = self.pressure_results.min()[self.pressure_results.min() < min_p_req].apply(lambda x: (min_p_req - x) * 40000).sum()
+        p_penalty = self.pressure_results.min()[self.pressure_results.min() < min_p_req].apply(lambda x: 400 if x < 0 else (min_p_req - x) * 20).sum()
         
         # min_hl = self.headloss_results.loc[:, [j for j in self.junctions if j in self.incl_nodes[self.incl_nodes]]].min()
-        hl_penalty = ((self.headloss_results.max() * 1000 - max_hl_req) * 40000).apply(lambda x: max(x, 0)).sum()
+        hl_penalty = ((self.headloss_results.max() * 1000 - max_hl_req) * 20).apply(lambda x: max(x, 0)).sum()
+
+        # CUSTOM TYPES OF PENALTIES WITH OPTIONAL PARAMETERS
+        # Override specific pipes (s) with additional cost or user-defined cost curve
+        # Ignore certain pipes from the list and don't penalise them
+
         return p_penalty + hl_penalty
         
     # def min_p_func(self):
