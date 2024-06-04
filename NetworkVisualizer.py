@@ -1,3 +1,5 @@
+import os
+import pickle
 import wntr
 import geopandas as gpd
 import pandas as pd
@@ -9,8 +11,8 @@ from colour import Color
 class NetworkVisualizer:
 
     def __init__(self, input_network) -> None:
-        self.input_network = input_network
-        self.wn = wntr.network.WaterNetworkModel(self.input_network)
+        self.wn = wntr.network.WaterNetworkModel(input_network)
+        self.input_network = input_network.split('\\')[-1]
 
     def generate_gdfs(self):
         g = self.wn.get_graph()
@@ -36,8 +38,8 @@ class NetworkVisualizer:
         self.node_gdf = gpd.GeoDataFrame({'id': self.wn.nodes}, geometry=[Point(xy) for xy in zip(node_x, node_y)])
     
     def export_shp(self):
-        self.pipe_gdf.to_file(f'{self.input_network.replace(".inp", "")}_pipes.shp')
-        self.node_gdf.to_file(f'{self.input_network.replace(".inp", "")}_nodes.shp')
+        self.pipe_gdf.to_file(os.path.join('assets', 'gis', f'{self.input_network.replace(".inp", "")}_pipes.shp'))
+        self.node_gdf.to_file(os.path.join('assets', 'gis', f'{self.input_network.replace(".inp", "")}_nodes.shp'))
     
     def plot_network(self):
         plt.scatter(self.node_gdf['geometry'].x, self.node_gdf['geometry'].y, color='b')
@@ -58,17 +60,22 @@ class NetworkVisualizer:
                     line_x = [a[0] for a in row['geometry'].values[0].coords]
                     line_y = [a[1] for a in row['geometry'].values[0].coords]
                     
-                    plt.plot(line_x, line_y, color=color, linewidth=dia / 100)
-                    # plt.text((line_x[0] + line_x[1]) / 2, 
-                    #     (line_y[0] + line_y[1]) / 2, label)
+                    plt.plot(line_x, line
+                    , linewidth=dia / 100)
+                    # plt.text((line_x[0]
+                    #  2, 
+                    #     (line_y[0] + li
+                    # abel)
                 else:
                     plt.plot(line_x, line_y, '*-', color=color)
         plt.show()
 
-    def draw_comparison(self, networks):
+    def draw_comparison(self, set_progress):
+        networks = [os.path.join('assets', 'non-dominated solutions', f) for f in os.listdir(os.path.join('assets', 'non-dominated solutions')) if os.path.splitext(f)[-1] == '.inp']
         comparative_dia = {'id': []}
         id_added = False
-        for network in networks:
+        for i, network in enumerate(networks):
+            set_progress(['Generating pipe diameter summaries...', (i + 1) / len(networks) * 100, f'{int((i + 1) / len(networks) * 100)} %'])
             comparison_network = wntr.network.WaterNetworkModel(network)
             comparative_dia[network] = []
             for link in self.wn.links:
@@ -82,12 +89,31 @@ class NetworkVisualizer:
             id_added = True
         comparative_dia = pd.DataFrame(comparative_dia)
         self.pipe_gdf = self.pipe_gdf.merge(comparative_dia, on='id')
-        self.pipe_gdf.to_csv(f'Difference_pipes.csv')        
+        pickle.dump(self.pipe_gdf, open(os.path.join('assets', 'difference_pipes.obj'), 'wb'))
+    
+    def generate_activation_shp(self, networks):
+        self.pipe_gdf = pickle.load(open(os.path.join('assets', 'difference_pipes.obj'), 'rb'))
 
+        # Filter on selected networks
+        self.pipe_gdf = self.pipe_gdf[[c for c in self.pipe_gdf.columns if 'assets' not in c or c in networks]]
+        pickle.dump(self.pipe_gdf, open(os.path.join('assets', 'selected_diameters.obj'), 'wb'))
         for network in networks:
             # self.pipe_gdf[network] = (self.pipe_gdf['Ex_dia'] - self.pipe_gdf[network]).apply(lambda x: 0 if x == 0 or pd.isnull(x) else 1)
             self.pipe_gdf[network] = (self.pipe_gdf['Ex_dia'] - self.pipe_gdf[network]).apply(lambda x: 0 if x == 0 or pd.isnull(x) else 1)
         self.pipe_gdf['Activation_P'] = self.pipe_gdf[networks].sum(axis=1) / len(networks)
+        self.pipe_gdf.to_clipboard()
         self.pipe_gdf = self.pipe_gdf.drop(networks, axis=1)
-        self.pipe_gdf.to_file(f'Difference_pipes.shp')
-        print()
+        pickle.dump(self.pipe_gdf, open(os.path.join('assets', 'selected_activation.obj'), 'wb'))
+    
+    def get_pareto_diameters(self, points):
+        df = pickle.load(open(os.path.join('assets', 'selected_diameters.obj'), 'rb'))
+        # [p['customdata'] for p in points['points'] if 'customdata' in p.keys()]
+        points_df = df.loc[df['id'].isin([p['customdata'] for p in points['points'] if 'customdata' in p.keys()])]
+        
+        y = {}
+        x = [c.split('\\')[-1].strip('.inp') for c in df.columns[3:].values]
+        x = ['Existing'] + ['C: ' + c.split('_')[1] + '<br>HP: '+ c.split('_')[-1] for c in x]
+        for i, row in points_df.iterrows():
+            if not all(row['Ex_dia'] == row[df.columns[3:]].values):
+                y[row['id']] = row[['Ex_dia'] + list(df.columns[3:].values)]
+        return x, y
