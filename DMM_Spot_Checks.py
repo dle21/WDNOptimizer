@@ -1,34 +1,26 @@
 import time
+import wntr
 from NetworkEvaluator import NetworkEvaluator
 from platypus import Problem, NSGAII, Integer, Archive, nondominated
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
-class LoggingArchive(Archive):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, *kwargs)
-        self.log = []
-    
-    def add(self, solution):
-        super().add(solution)
-        self.log.append(solution)
+
+# Load model
+INP_file_name = 'OPTION_2___TONGALA_Masterplanning_2043_Horizon__1' # input('Enter the filename of the network you wish to process: ')
+inp_file = f'C:/Users/dmiller-moran/WDNOptimizer/{INP_file_name}.inp'
+wn = wntr.network.WaterNetworkModel(inp_file)
 
 
-start_time = time.time()
+pipes = wn.pipe_name_list
 
-# inp_file = 'TONGALA_Calibration_2022.inp'
-inp_file = 'Optimised_network10000.inp'
-input_sheet = 'Optimisation_Cost_Basis.xlsx'
-min_p_req = 20
-max_hl_req = 10
-generations = 10000
+# Original Pipe diameters
+pipe_info = {}
+pipe_names = [wn.get_link(pipe).name for pipe in wn.pipe_name_list]
+original_diameter = [wn.get_link(pipe).diameter * 1000 for pipe in wn.pipe_name_list]
+pipe_length = [wn.get_link(pipe).length for pipe in wn.pipe_name_list]
 
-
-fig = plt.figure()
-nwke = NetworkEvaluator(inp_file, input_sheet, min_p_req)
-existing_totex, existing_capex = nwke.totex_func(0)
-existing_penalties = nwke.penalties(min_p_req, max_hl_req)
-print(f'\n\nOriginal network cost: ${existing_totex:,.2f}, Penalties: ${existing_penalties:,.2f}')
-available_diameters = nwke.pipecosts['Size'].unique()
-
+pipe_info = {'Pipe_name': pipe_names,'Original_Diameter': original_diameter, 'Length': pipe_length}
+pipe_df = pd.DataFrame.from_dict(pipe_info)
+pipe_df.to_excel('C:/Users/dmiller-moran/WDNOptimizer/2043_pipes.xlsx')
