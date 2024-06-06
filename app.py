@@ -34,11 +34,11 @@ app.title = "Charlie"
 # pickle.dump(nwkv.pipe_gdf, open('assets\\selected_activation.obj', 'wb'))
 # initial_network_map = network_mapper()
 
-@app.callback(Output("proposed_comparison", "options"), Input("proposed_comparison_parent", "n_clicks"))
-def update_options(n):
-    if n:
-        print(n)
-        return os.listdir(os.path.join('assets', 'non-dominated solutions'))
+# @app.callback(Output("proposed_comparison", "options"), Input("proposed_comparison_parent", "n_clicks"))
+# def update_options(n):
+#     if n:
+#         options = os.listdir(os.path.join('assets', 'non-dominated solutions'))
+#         return [{'label': options, 'value': options}]
 
 
 

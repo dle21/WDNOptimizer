@@ -1,6 +1,6 @@
 import time
 from NetworkEvaluator import NetworkEvaluator
-from platypus import Problem, NSGAII, Integer, Archive, nondominated, Generator, Solution
+from platypus import Problem, NSGAII, Integer, Real, Archive, nondominated, Generator, Solution
 import random
 import pandas as pd
 import pickle
@@ -31,7 +31,23 @@ class GAProcessor:
             print(f'Manual network upgrade cost: ${self.manual_totex:,.2f}, Penalties: ${self.manual_penalties:,.2f}')
         self.available_diameters = self.nwk.pipecosts['Size'].unique()
         problem_type = Integer(0, len(available_diameters)-1)
-        self.original_diameters = [problem_type.encode(np.where(available_diameters == round(self.nwk.wn.get_link(pipe).diameter * 1000, 0))[0][0]) for pipe in self.nwk.pipes]
+        pump_duty_flows = [self.nwk.wn.get_link(pump).get_design_flow() / 2 for pump in self.nwk.pumps]
+        
+        pump_points = [self.nwk.wn.get_link(pump).get_pump_curve().points for pump in self.nwk.pumps]
+        
+        point_idxs = [
+            [point[0] > pump_duty_flows[i] for point in points].index(True)
+            for i, points in enumerate(pump_points)]
+        
+        head = []
+        for i, idx in enumerate(point_idxs):
+            if len(pump_points[i]) > 1:
+                head.append((pump_duty_flows[i] - pump_points[i][idx - 1][0]) / (pump_points[i][idx][0] - pump_points[i][idx - 1][0]) * \
+                        (pump_points[i][idx][1] - pump_points[i][idx - 1][1]) + pump_points[i][idx - 1][1])
+            else:
+                head.append(pump_points[i][0][1])
+        self.original = [problem_type.encode(np.where(available_diameters == round(self.nwk.wn.get_link(pipe).diameter * 1000, 0))[0][0]) for pipe in self.nwk.pipes] + \
+                        pump_duty_flows + head
 
     def run_GA(self, set_progress, gens, min_p, max_hl):
         self.set_progress = set_progress
@@ -40,14 +56,19 @@ class GAProcessor:
         self.max_hl = max_hl
         self.run_no = 0
         start_time = time.time()
+        self.problem = Problem(len(self.nwk.pipes) + 2 * len(self.nwk.pumps), 2 , 0) # (Decisions variables, objectives, constraints)
+        # Pipe diameters
+        self.problem.types[:len(self.nwk.pipes)] = Integer(0, len(self.available_diameters)-1)
+        # Pump flows
+        self.problem.types[len(self.nwk.pipes): len(self.nwk.pipes) + len(self.nwk.pumps)] = Real(0, 0.5)
+        # Pump head
+        self.problem.types[len(self.nwk.pipes) + len(self.nwk.pumps):] = Real(0, 500)
 
-        self.problem = Problem(len(self.nwk.pipes), 2 , 0) # (Decisions variables, objectives, constraints)
-        self.problem.types[:] = Integer(0, len(self.available_diameters)-1)
         self.problem.constraints[:] = ">=0"
         self.problem.function = self.Min_Cost_GA
         self.problem.directions[:] = Problem.MINIMIZE
         log_archive = LoggingArchive()
-        self.algorithm = NSGAII(self.problem, population_size=50, generator=CustomGenerator(self.original_diameters), archive=log_archive)
+        self.algorithm = NSGAII(self.problem, population_size=50, generator=CustomGenerator(self.original), archive=log_archive)
         self.algorithm.run(gens)
         print(f'\nExecution time = {(time.time() - start_time)/60:.2f} minutes')
     
@@ -104,18 +125,20 @@ class GAProcessor:
     def Min_Cost_GA(self, x):
         self.run_no += 1
         self.set_progress(['Running GA...', int(self.run_no / self.gens * 100), f'{int(self.run_no / self.gens * 100)} %'])
-        indexers = {"indexer_%d"%idx: val for idx, val in enumerate(x[:])}
         for idx, pipe in enumerate(self.nwk.pipes):
-            self.nwk.wn.get_link(pipe).diameter = self.available_diameters[indexers["indexer_%d"%idx]]/1000
-
-        if x == self.original_diameters and not self.nwk.original_results is None:
+            self.nwk.wn.get_link(pipe).diameter = self.available_diameters[x[idx]]/1000
+        print(x[-10:])
+        for i, pump in enumerate(self.nwk.pumps):
+            print((x[len(self.nwk.pipes) + i], x[len(self.nwk.pipes) + len(self.nwk.pumps) + i]))
+            self.nwk.wn.get_link(pump).get_pump_curve().points = [(x[len(self.nwk.pipes) + i], x[len(self.nwk.pipes) + len(self.nwk.pumps) + i])]
+        if x == self.original and not self.nwk.original_results is None:
             return self.nwk.original_results
         else:
             run_passed = self.nwk.run_sim()
             if run_passed:
                 penalty = self.nwk.penalties(self.min_p, self.max_hl)
                 totex, _ = self.nwk.totex_func(self.nwke.pipe_df)
-                if x == self.original_diameters and self.nwk.original_results is None:
+                if x == self.original and self.nwk.original_results is None:
                     self.nwk.original_results = [totex, penalty]
                 return [totex, penalty]
             else:
@@ -133,22 +156,20 @@ class LoggingArchive(Archive):
 
 
 class CustomGenerator(Generator):
-    def __init__(self, original_diameters, prop_random_p=0.2, prop_pop_random_p=0.2):
+    def __init__(self, original, prop_random_p=1, prop_pop_random_p=1):
         super().__init__()
         if prop_random_p < 0 or prop_random_p > 1:
             raise ValueError("prop_random_p must be within the range [0, 1]")
         if prop_pop_random_p < 0 or prop_pop_random_p > 1:
             raise ValueError("prop_pop_random_p must be within the range [0, 1]")
-        self.original_diameters = original_diameters
+        self.original = original
         self.prop_random_p = prop_random_p
         self.prop_pop_random_p = prop_pop_random_p
 
     def generate(self, problem):
-        if len(self.original_diameters) != len(problem.types):
-            raise ValueError("original list must have the same length as the number of variables in the problem")
         solution = Solution(problem)
         if random.random() < self.prop_random_p:
-            solution.variables = [x.rand() if random.random() < self.prop_pop_random_p else self.original_diameters[i] for i, x in enumerate(problem.types)]
+            solution.variables = [x.rand() if random.random() < self.prop_pop_random_p else self.original[i] for i, x in enumerate(problem.types)]
         else:
-            solution.variables = self.original_diameters
+            solution.variables = self.original
         return solution

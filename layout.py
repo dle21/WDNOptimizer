@@ -217,14 +217,14 @@ page3 = html.Div([
             dbc.Col(
                 className="six columns",
                 children=[
-                    dcc.Markdown(d("""
-                            **Proposed (.inp)**
-                            """)),
-                        html.Div(id='proposed_comparison_parent',
-                            children=[dcc.Dropdown(os.listdir(os.path.join('assets', 'non-dominated solutions')),
-                            id='proposed_comparison',
-                            style={'margin-bottom': '5px',
-                                    'width': '500px'})]),
+                    html.Div(id='proposed_comparison_parent',
+                        children=[dcc.Markdown(d("""
+                        **Proposed (.inp)**
+                        """)),
+                        dcc.Dropdown(os.listdir(os.path.join('assets', 'non-dominated solutions')),
+                        id='proposed_comparison',
+                        style={'margin-bottom': '5px',
+                                'width': '500px'})]),
                     html.Div(id='proposed_comparison_plot', children=[dcc.Graph(figure=go.Figure().update_layout(go.Layout()))])
                 ], width=6
             ),
