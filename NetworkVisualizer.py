@@ -14,6 +14,10 @@ class NetworkVisualizer:
         self.wn = wntr.network.WaterNetworkModel(input_network)
         self.input_network = input_network.split('\\')[-1]
 
+    def get_network(self):
+        g = self.wn.get_graph()
+        print()
+
     def generate_gdfs(self):
         g = self.wn.get_graph()
         node_x = [g.nodes[node]['pos'][0] for node in self.wn.nodes]

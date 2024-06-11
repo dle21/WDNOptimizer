@@ -1,6 +1,5 @@
-from dash import dcc
+from dash import dcc, html, dash_table
 import dash_bootstrap_components as dbc
-from dash import html
 from dash.dependencies import Input, Output
 from app import *
 from style import *
@@ -97,7 +96,7 @@ page2 = html.Div([
                             **EPA file (.inp)**
                             """)),
                         dcc.Input(id='inp_file_GA',
-                                value=r'TONGALA_Calibration_2022.inp',
+                                value='TONGALA_Calibration_2022.inp',
                                 style={'margin-bottom': '5px',
                                         'width': '300px'}),
                     ], className='four columns'),
@@ -115,7 +114,7 @@ page2 = html.Div([
                                 **Optional: proposed EPA file (.inp) for retrospective**
                                 """)),
                         dcc.Input(id='proposed_inp_file',
-                                value=f'OPTION_2___TONGALA_Masterplanning_2043_Horizon__1.inp',
+                                value='OPTION_2___TONGALA_Masterplanning_2043_Horizon__1.inp',
                                 style={'margin-bottom': '5px',
                                         'width': '300px'}),
                     ], className='four columns', style={'margin-bottom': '5px'}),
@@ -223,6 +222,7 @@ page3 = html.Div([
                         """)),
                         dcc.Dropdown(os.listdir(os.path.join('assets', 'non-dominated solutions')),
                         id='proposed_comparison',
+                        value=None,
                         style={'margin-bottom': '5px',
                                 'width': '500px'})]),
                     html.Div(id='proposed_comparison_plot', children=[dcc.Graph(figure=go.Figure().update_layout(go.Layout()))])
@@ -233,16 +233,49 @@ page3 = html.Div([
     dbc.Row([
         dbc.Col([
             dcc.Markdown(d("""
+                **Pump curves**
+                """)),
+            html.Div(id='pump_curves', children=[dcc.Graph(figure=go.Figure().update_layout(go.Layout()))]),
+        ], width=4),
+        dbc.Col([
+            dcc.Markdown(d("""
+                **Pressure distribution**
+                """)),
+            html.Div(id='pressure_density', children=[dcc.Graph(figure=go.Figure().update_layout(go.Layout()))])
+        ], width=4),
+        dbc.Col([
+            dcc.Markdown(d("""
                 **Headloss distribution**
                 """)),
             html.Div(id='HL_density', children=[dcc.Graph(figure=go.Figure().update_layout(go.Layout()))])
-            ], width=6),
-        dbc.Col([
-            dcc.Markdown(d("""
-                **Pressures distribution**
+        ], width=4),
+    ]),
+    dbc.Row([dcc.Markdown(d("""
+                **Manual (.inp)**
                 """)),
-            html.Div(id='pressure_density', children=[dcc.Graph(figure=go.Figure().update_layout(go.Layout()))])
-            ], width=6),
+            dcc.Input(id='manual_comparison',
+                    value=f'OPTION_2___TONGALA_Masterplanning_2043_Horizon__1.inp',
+                    style={'margin-bottom': '5px',
+                            'width': '500px'}),]),
+    dbc.Row([
+        dbc.Col([dash_table.DataTable(
+            id='diameters_table',
+            style_cell={'textAlign': 'left'},
+            style_header={'backgroundColor': 'black', 'color': 'white', 'fontWeight': 'bold'}, 
+            style_data_conditional=[{'if': {'column_id': 'Diameter (mm)'},'backgroundColor': 'black', 'color': 'white', 'fontWeight': 'bold'}]
+        )], width=4),
+        dbc.Col([dash_table.DataTable(
+            id='pressures_table',
+            style_cell={'textAlign': 'left'},
+            style_header={'backgroundColor': 'black', 'color': 'white', 'fontWeight': 'bold'}, 
+            style_data_conditional=[{'if': {'column_id': 'Pressure (m)'},'backgroundColor': 'black', 'color': 'white', 'fontWeight': 'bold'}]
+        )], width=4),
+        dbc.Col([dash_table.DataTable(
+            id='headloss_table',
+            style_cell={'textAlign': 'left'},
+            style_header={'backgroundColor': 'black', 'color': 'white', 'fontWeight': 'bold'}, 
+            style_data_conditional=[{'if': {'column_id': 'Headloss (m/km)'},'backgroundColor': 'black', 'color': 'white', 'fontWeight': 'bold'}]
+        )], width=4),
     ])
 ])
 

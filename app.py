@@ -11,6 +11,8 @@ import diskcache
 import dash_bootstrap_components as dbc
 from NetworkVisualizer import NetworkVisualizer
 import pickle
+import pandas as pd
+import numpy as np
 
 
 cache = diskcache.Cache("./cache")
@@ -81,8 +83,7 @@ def run_GA(set_progress, n, inp_file, cost_basis, proposed_inp_file, gens, min_p
         nwkv = NetworkVisualizer(inp_file)
         nwkv.generate_gdfs()
         nwkv.export_shp()
-
-        if proposed_inp_file != '':
+        if proposed_inp_file is not None:
             nwkv = NetworkVisualizer(proposed_inp_file)
             nwkv.generate_gdfs()
             nwkv.export_shp()
@@ -113,7 +114,6 @@ def plot_pareto_callback(n):
     prevent_initial_call=True
 )
 def plot_result_graph(selected, clicked, inp_file):
-    print(selected, clicked)
     if selected is not None or clicked is not None:
         if dash.callback_context.triggered[0]['prop_id'] == 'pareto_curve_graph.selectedData':
             po = selected
@@ -121,7 +121,6 @@ def plot_result_graph(selected, clicked, inp_file):
             po = clicked
         networks = [os.path.join('assets', 'non-dominated solutions', f'C_{round(p["x"], 2)}_HP_{round(p["y"], 2)}.inp') for p in po['points']]
         networks = list(set([n for n in networks if os.path.exists(n)]))
-        print(networks)
         if len(networks) > 0:
             nwkv = NetworkVisualizer(inp_file)
             nwkv.generate_activation_shp(networks)
@@ -148,7 +147,6 @@ def plot_result_graph(selected, clicked, inp_file):
             po = selected
         else:
             po = clicked
-        print(po)
         nwkv = NetworkVisualizer(inp_file)
         x, y = nwkv.get_pareto_diameters(po)
         return [dash.dcc.Graph(figure=plot_diameters(x, y))]
@@ -159,25 +157,64 @@ def plot_result_graph(selected, clicked, inp_file):
 @app.callback(
     Output('existing_comparison_plot', 'children'),
     Output('proposed_comparison_plot', 'children'),
+    Output('pump_curves', 'children'),
     Output('HL_density', 'children'),
     Output('pressure_density', 'children'),
+    Output('diameters_table', 'data'),
+    Output('pressures_table', 'data'),
+    Output('headloss_table', 'data'),
     Input('existing_comparison', 'value'),
     Input('proposed_comparison', 'value'),
+    Input('manual_comparison', 'value'),
 )
-def plot_existing_comparison_graph(existing_inp_file, proposed_inp_file):
-    nwke = NetworkEvaluator(existing_inp_file)
+def plot_existing_comparison_graph(existing_inp_file, proposed_inp_file, manual_inp_file):
+    data_tables = None
+    existing_figure = go.Figure().update_layout(go.Layout())
+    proposed_figures = [
+        go.Figure().update_layout(go.Layout()),
+        go.Figure().update_layout(go.Layout()),
+        go.Figure().update_layout(go.Layout()),
+        go.Figure().update_layout(go.Layout())
+    ]
+
+    if existing_inp_file:
+        nwke = NetworkEvaluator(existing_inp_file)
+        ex_tables = get_table_results(nwke, 'Existing')
+        data_tables = ex_tables
+        existing_figure = network_hydraulics_mapper(existing_inp_file, nwke)
+
+    if manual_inp_file:
+        nwkm = NetworkEvaluator(manual_inp_file)
+        man_tables = get_table_results(nwkm, 'Manual')
+        if data_tables:
+            data_tables = join_data_tables(data_tables, man_tables)
+        else:
+            data_tables = man_tables
+
     if proposed_inp_file:
         if not os.path.exists('assets\\gis\\' + proposed_inp_file.replace('.inp', '_pipes.shp')):
             nwkv = NetworkVisualizer(os.path.join('assets', 'non-dominated solutions', proposed_inp_file))
             nwkv.generate_gdfs()
             nwkv.export_shp()
         nwkp = NetworkEvaluator('assets\\non-dominated solutions\\' + proposed_inp_file)
-        return [dash.dcc.Graph(id='existing_comparison_graph', figure=network_hydraulics_mapper(existing_inp_file, nwke))], \
-            [dash.dcc.Graph(id='proposed_comparison_graph', figure=network_hydraulics_mapper(proposed_inp_file, nwkp))], \
-            [dash.dcc.Graph(id='HL_density_graph', figure=headloss_density(nwke, nwkp))], \
-            [dash.dcc.Graph(id='pressure_density_graph', figure=pressure_density(nwke, nwkp))]
-    else:
-        return [dash.dcc.Graph(id='existing_comparison_graph', figure=network_hydraulics_mapper(existing_inp_file, nwke))], \
-            [dash.dcc.Graph(id='proposed_comparison_graph', figure=go.Figure().update_layout(go.Layout()))], \
-            [dash.dcc.Graph(id='proposed_comparison_graph', figure=go.Figure().update_layout(go.Layout()))], \
-            [dash.dcc.Graph(id='proposed_comparison_graph', figure=go.Figure().update_layout(go.Layout()))]
+        proposed_figures = [
+            network_hydraulics_mapper(proposed_inp_file, nwkp), 
+            get_pump_curves(nwke, nwkp),
+            headloss_density(nwke, nwkp), 
+            pressure_density(nwke, nwkp)
+        ]
+
+        prop_tables = get_table_results(nwkp, 'Proposed')
+        if data_tables:
+            data_tables = join_data_tables(data_tables, prop_tables)
+        else:
+            data_tables = prop_tables
+
+    return [dash.dcc.Graph(id='existing_comparison_graph', figure=existing_figure)], \
+        [dash.dcc.Graph(id='proposed_comparison_graph', figure=proposed_figures[0])], \
+        [dash.dcc.Graph(id='pump_curves', figure=proposed_figures[1])], \
+        [dash.dcc.Graph(id='HL_density_graph', figure=proposed_figures[2])], \
+        [dash.dcc.Graph(id='pressure_density_graph', figure=proposed_figures[3])], \
+        data_tables[0].to_dict('records'), \
+        data_tables[1].to_dict('records'), \
+        data_tables[2].to_dict('records')

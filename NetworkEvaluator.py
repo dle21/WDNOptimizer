@@ -140,9 +140,9 @@ class NetworkEvaluator:
         r = self.opex.loc[self.opex['Variable'] == 'Annual Interest rate', 'Value'].values[0]
         annuity = (r*(1+r)**n)/((1+r)**n-1)*(total_pipe_inv_cost)
         
-        #Total Annual Expenditure
+        # Total Annual Expenditure
         total_annual_expenditure = total_OM + annuity
-
+        # print(annuity, annual_pump_cost, total_OM)
         return total_annual_expenditure, inv_cost
     
     def penalties(self, min_p_req, max_hl_req):

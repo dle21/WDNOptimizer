@@ -3,6 +3,8 @@ import geopandas as gpd
 import plotly.graph_objs as go
 import pickle
 import plotly.figure_factory as ff
+import pandas as pd
+import numpy as np
 
 def utmToLatLng(zone, easting, northing, northernHemisphere=True):
     """
@@ -59,10 +61,9 @@ def utmToLatLng(zone, easting, northing, northernHemisphere=True):
     return latitude, longitude
 
 def network_mapper():
-    fig = {}
-    fig, lats, lons = update_network_map(fig)
+    fig, lats, lons = update_network_map({})
     fig['layout'] = go.Layout(
-        showlegend=False,
+        showlegend=True,
         height=600,
         margin={"r": 0, "t": 0, "l": 0, "b": 30},
         mapbox={
@@ -80,6 +81,7 @@ def network_mapper():
 
 def update_network_map(fig):
     df = pickle.load(open('assets\\selected_activation.obj', 'rb'))
+    scatter_groups = {}
     lons = []
     lats = []
     if len(df) > 0:
@@ -93,8 +95,10 @@ def update_network_map(fig):
             marker=go.scattermapbox.Marker(
                 opacity=0,
                 color=[]
-            )
+            ),
+            customdata=[]
         )
+        
         for i in range(len(df)):
             po_lats = []
             po_lons = []
@@ -102,31 +106,52 @@ def update_network_map(fig):
                 lat, lon = utmToLatLng(55, df['geometry'][i].coords[j][0], df['geometry'][i].coords[j][1], False)
                 po_lons.append(lon)
                 po_lats.append(lat)
-                strength = int(df["Activation_P"][i] * 255)
-            fig['data'].append(go.Scattermapbox(
-                name=df['id'][i],
-                mode='lines+markers',
-                lon=po_lons,
-                lat=po_lats,
-                customdata=[df['id'][i]],
-                hoverinfo="skip",
-                marker=go.scattermapbox.Marker(
-                    color=f'rgb({strength},0,0)',
-                ),
-            ))
-            middle_node_trace['lon'] += tuple([(po_lons[0] + po_lons[1]) / 2])
-            middle_node_trace['lat'] += tuple([(po_lats[0] + po_lats[1]) / 2])
+            color = f'rgb({int(df["Activation_P"][i] * 255)},0,0)'
+            # fig['data'].append(go.Scattermapbox(
+            #     name=df['id'][i],
+            #     mode='lines+markers',
+            #     lon=po_lons,
+            #     lat=po_lats,
+            #     customdata=[df['id'][i]],
+            #     hoverinfo="skip",
+            #     marker=go.scattermapbox.Marker(
+            #         color=f'rgb({strength},0,0)',
+            #     ),
+            # ))
+            middle_node_trace['lon'] += tuple([sum(po_lons) / len(po_lons)])
+            middle_node_trace['lat'] += tuple([sum(po_lats) / len(po_lats)])
             middle_node_trace['text'] += 'ID: ' + str(df['id'][i]) + '<br>P: ' + str(df['Activation_P'][i]),
-            middle_node_trace['marker']['color'] += f'rgb({strength},0,0)',
-
+            middle_node_trace['marker']['color'] += color,
+            middle_node_trace['customdata'] += df['id'][i],
+            
+            if color not in scatter_groups.keys():
+                scatter_groups[color] = {}
+                scatter_groups[color]['lats'] = []
+                scatter_groups[color]['lons'] = []
+            
+            scatter_groups[color]['lats'] += po_lats + [None]
+            scatter_groups[color]['lons'] += po_lons + [None]
+            
             lats += po_lats
             lons += po_lons
+        for color in scatter_groups.keys():
+            fig['data'].append(go.Scattermapbox(
+                    name=color,
+                    mode='lines+markers',
+                    lat=scatter_groups[color]['lats'],
+                    lon=scatter_groups[color]['lons'],
+                    # customdata=[df['id'][i]],
+                    hoverinfo="skip",
+                    marker=go.scattermapbox.Marker(
+                        color=color,
+                    ),
+                ))
         fig['data'].append(middle_node_trace)
     return fig, lats, lons
 
 def plot_pareto():
     plot_results = pickle.load(open('assets\\plotting_results.obj', 'rb'))
-    return {
+    fig = {
             'data': [
                 go.Scatter(
                     x=plot_results['costs'],
@@ -143,31 +168,42 @@ def plot_pareto():
                     name='Pareto front solutions',
                     mode='markers'
                 ),
-                go.Scatter(
-                    x=[plot_results['manual_totex']],
-                    y=[plot_results['manual_penalties']],
-                    hoverinfo='x+y',
-                    name='Manual',
-                    mode='markers',
-                    marker={'size': 12, 'color': 'red'}
-                ),
-                go.Scatter(
-                    x=[plot_results['existing_totex']],
-                    y=[plot_results['existing_penalties']],
-                    hoverinfo='x+y',
-                    name='Do Nothing',
-                    mode='markers',
-                    marker={'size': 12, 'color': 'blue'}
-                ),
             ],
             'layout': go.Layout(
                 title=f'Pareto curve ({plot_results["generations"]} generations)',
-                xaxis_title='Costs ($)',
                 xaxis={'title': 'Costs ($)', 'range': plot_results['xlim']},
                 yaxis={'title': 'Penalties ($)', 'range': plot_results['ylim']},
-                margin={'b': 30, 'l': 60, 'r': 60, 't': 60}
+                margin={'b': 30, 'l': 60, 'r': 60, 't': 60},
+                legend={
+                    'yanchor': "top",
+                    'y': 0.99,
+                    'xanchor': "right",
+                    'x': 0.99
+                }
             )
     }
+
+    if 'manual_totex' in plot_results.keys():
+        fig['data'].append(
+            go.Scatter(
+                x=[plot_results['manual_totex']],
+                y=[plot_results['manual_penalties']],
+                hoverinfo='x+y',
+                name='Manual',
+                mode='markers',
+                marker={'size': 12, 'color': 'red'}
+            ))
+    fig['data'].append(
+        go.Scatter(
+            x=[plot_results['existing_totex']],
+            y=[plot_results['existing_penalties']],
+            hoverinfo='x+y',
+            name='Do Nothing',
+            mode='markers',
+            marker={'size': 12, 'color': 'blue'}
+        ),
+    )
+    return fig
 
 def plot_diameters(x, y):
     plot = {'data': [], 
@@ -210,31 +246,9 @@ def network_hydraulics_mapper(results_file, results):
     min_p = results.pressure_results.min()
     lons = []
     lats = []
-    fig = None
+    fig = {}
     if len(pipe_df) > 0:
-        fig = go.Figure()
-        node_lons = []
-        node_lats = []
-        node_text = []
-        node_colors = []
-        for node in min_p.index:
-            row = node_df.loc[node_df['id'] == node]['geometry']
-            lat, lon = utmToLatLng(55, row.x.values[0], row.y.values[0], False)
-            node_lons.append(lon)
-            node_lats.append(lat)
-            node_text.append('ID: ' + node + '<br>P: ' + str(round(min_p[node], 2)))
-            node_colors.append(min_p_colors[list(min_p_colors.keys())[[k[1] > min_p[node] and min_p[node] >= k[0] for k in min_p_colors.keys()].index(True)]])
-
-        fig.add_trace(go.Scattermapbox(
-            lon=node_lons,
-            lat=node_lats,
-            text=node_text,
-            mode='markers',
-            hoverinfo='text',
-            marker=go.scattermapbox.Marker(
-                color=node_colors,
-            )
-        ))
+        fig['data'] = []
 
         middle_node_trace = go.Scattermapbox(
             lon=[],
@@ -247,6 +261,8 @@ def network_hydraulics_mapper(results_file, results):
                 color=[],
             )
         )
+
+        scatter_groups = {}
         for i in range(len(pipe_df)):
             if pipe_df['id'][i] in max_hl.index:
                 # strength = int((1 - max_hl.rank()[i] / len(max_hl)) * 255)
@@ -262,12 +278,41 @@ def network_hydraulics_mapper(results_file, results):
                 lat, lon = utmToLatLng(55, pipe_df['geometry'][i].coords[j][0], pipe_df['geometry'][i].coords[j][1], False)
                 po_lons.append(lon)
                 po_lats.append(lat)
-            fig.add_trace(go.Scattermapbox(
-                name=pipe_df['id'][i],
-                mode='lines',
-                lon=po_lons,
-                lat=po_lats,
-                customdata=[pipe_df['id'][i]],
+            # fig.add_trace(go.Scattermapbox(
+            #     name=pipe_df['id'][i],
+            #     mode='lines',
+            #     lon=po_lons,
+            #     lat=po_lats,
+            #     customdata=[pipe_df['id'][i]],
+            #     # text=text,
+            #     hoverinfo="skip",
+            #     marker=go.scattermapbox.Marker(
+            #         color=color,
+            #     ),
+            # ))
+
+            middle_node_trace['lon'] += tuple([(po_lons[0] + po_lons[1]) / 2])
+            middle_node_trace['lat'] += tuple([(po_lats[0] + po_lats[1]) / 2])
+            middle_node_trace['text'] += 'ID: ' + str(pipe_df['id'][i]) + '<br>HL: ' + text,
+            middle_node_trace['marker']['color'] += color,
+            
+            if color not in scatter_groups.keys():
+                scatter_groups[color] = {}
+                scatter_groups[color]['lats'] = []
+                scatter_groups[color]['lons'] = []
+            
+            scatter_groups[color]['lats'] += po_lats + [None]
+            scatter_groups[color]['lons'] += po_lons + [None]
+
+            lats += po_lats
+            lons += po_lons
+        for color in scatter_groups.keys():
+            fig['data'].append(go.Scattermapbox(
+                name=color,
+                mode='lines+markers',
+                lon=scatter_groups[color]['lons'],
+                lat=scatter_groups[color]['lats'],
+                # customdata=[pipe_df['id'][i]],
                 # text=text,
                 hoverinfo="skip",
                 marker=go.scattermapbox.Marker(
@@ -275,18 +320,33 @@ def network_hydraulics_mapper(results_file, results):
                 ),
             ))
 
-            middle_node_trace['lon'] += tuple([(po_lons[0] + po_lons[1]) / 2])
-            middle_node_trace['lat'] += tuple([(po_lats[0] + po_lats[1]) / 2])
-            middle_node_trace['text'] += 'ID: ' + str(pipe_df['id'][i]) + '<br>HL: ' + text,
-            middle_node_trace['marker']['color'] += color,
-            
-            lats += po_lats
-            lons += po_lons
-        
-        fig.add_trace(middle_node_trace)
+        fig['data'].append(middle_node_trace)
 
-        fig.update_layout(
-            showlegend=False,
+        node_lons = []
+        node_lats = []
+        node_text = []
+        node_colors = []
+        for node in min_p.index:
+            row = node_df.loc[node_df['id'] == node]['geometry']
+            lat, lon = utmToLatLng(55, row.x.values[0], row.y.values[0], False)
+            node_lons.append(lon)
+            node_lats.append(lat)
+            node_text.append('ID: ' + node + '<br>P: ' + str(round(min_p[node], 2)))
+            node_colors.append(min_p_colors[list(min_p_colors.keys())[[k[1] > min_p[node] and min_p[node] >= k[0] for k in min_p_colors.keys()].index(True)]])
+
+        fig['data'].append(go.Scattermapbox(
+            lon=node_lons,
+            lat=node_lats,
+            text=node_text,
+            mode='markers',
+            hoverinfo='text',
+            marker=go.scattermapbox.Marker(
+                color=node_colors,
+            )
+        ))
+
+        fig['layout'] = go.Layout(
+            showlegend=True,
             height=600,
             margin={"r": 0, "t": 0, "l": 0, "b": 30},
             mapbox={
@@ -306,10 +366,75 @@ def pressure_density(existing_results, proposed_results):
     ex_min_p = existing_results.pressure_results.min()
     p_min_p = proposed_results.pressure_results.min()
 
-    return ff.create_distplot([ex_min_p, p_min_p], ['Existing', 'Proposed'], show_hist=False, show_rug=False)
+    return ff.create_distplot([ex_min_p, p_min_p], ['Existing', 'Proposed'], show_hist=False, show_rug=False) \
+        .update_layout(xaxis_title='Pressure (m)', yaxis_title='Probability Density', margin={'b': 30, 'l': 60, 'r': 60, 't': 60})
 
 def headloss_density(existing_results, proposed_results):
     ex_max_hl = existing_results.headloss_results.max() * 1000
     p_max_hl = proposed_results.headloss_results.max() * 1000
 
-    return ff.create_distplot([ex_max_hl, p_max_hl], ['Existing', 'Proposed'], show_hist=False, show_rug=False)
+    return ff.create_distplot([ex_max_hl, p_max_hl], ['Existing', 'Proposed'], show_hist=False, show_rug=False) \
+        .update_layout(xaxis_title='Headloss (m/km)', yaxis_title='Probability Density', margin={'b': 30, 'l': 60, 'r': 60, 't': 60})
+
+
+def get_table_results(network, scenario):
+    diameters = pd.DataFrame([int(network.wn.get_link(pipe).diameter * 1000) for pipe in network.pipes]).value_counts().sort_index()
+    diameters.index = [a[0] for a in diameters.index]
+    diameters = pd.DataFrame({'Diameter (mm)': diameters.index, f'{scenario} diameters': diameters.values})
+    
+    pressure_bins = pd.cut(network.pressure_results.min(), [float('-inf'), 20, 25, 30, 35, float('inf')]).value_counts().sort_index()
+    pressure_bins.index = ['< ' + str(int(pressure_bins.index[0].right))] + [str(int(a.left)) + ' - ' + str(int(a.right)) for a in pressure_bins.index[1:-1]] + [str(int(pressure_bins.index[-2].right)) + '+']
+    pressure_bins = pd.DataFrame({'Pressure (m)': pressure_bins.index, f'{scenario} pressures': pressure_bins.values})
+    
+    hl_bins = pd.cut(network.headloss_results.max() * 1000, [float('-inf'), 3, 5, 10, float('inf')]).value_counts().sort_index()
+    hl_bins.index = ['< ' + str(int(hl_bins.index[0].right))] + [str(int(a.left)) + ' - ' + str(int(a.right)) for a in hl_bins.index[1:-1]] + [str(int(hl_bins.index[-2].right)) + '+']
+    hl_bins = pd.DataFrame({'Headloss (m/km)': hl_bins.index, f'{scenario} headloss': hl_bins.values})
+
+    return [diameters, pressure_bins, hl_bins]
+
+def join_data_tables(current, new_columns):
+    first_columns = [current[i].iloc[:, 0] for i in range(len(current))]
+    merged_dfs = [current[i].merge(new_columns[i], 'outer').fillna(0) for i in range(len(current))]
+    return [merged_dfs[0]] + [merged_dfs[i].iloc[[merged_dfs[i].index[merged_dfs[i].iloc[:, 0] == cat].values[0] for cat in first_columns[i].values], :] for i in range(1, len(current))]
+
+def get_pump_curves(existing_results, proposed_results):
+    import matplotlib.pyplot as plt
+    colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+    return {
+        'data': [
+            go.Scatter(
+                # x=np.linspace(0, 2 * results.wn.get_link(pump).get_pump_curve().points[0][0] * 1000),
+                # y=
+                # 4/3 * results.wn.get_link(pump).get_pump_curve().points[0][1] - 
+                # results.wn.get_link(pump).get_pump_curve().points[0][1] / (3 * (results.wn.get_link(pump).get_pump_curve().points[0][0] * 1000) ** 2) *
+                # np.linspace(0, 2 * results.wn.get_link(pump).get_pump_curve().points[0][0] * 1000) ** 2,
+                x=[a[0] * 1000 for a in results.wn.get_link(pump).get_pump_curve().points],
+                y=[a[1] for a in results.wn.get_link(pump).get_pump_curve().points],
+                
+                name=f'{pump} {title}',
+                mode='lines',
+                line={'dash': 'dash', 'color': colors[i]}
+            )
+        if title == 'Prop' else
+            go.Scatter(
+                x=[a[0] * 1000 for a in results.wn.get_link(pump).get_pump_curve().points],
+                y=[a[1] for a in results.wn.get_link(pump).get_pump_curve().points],
+                name=f'{pump} {title}',
+                mode='lines',
+                line={'color': colors[i]}
+            )
+        for title, results in [('Ex', existing_results), ('Prop', proposed_results)] 
+        # for title, results in [('Ex', existing_results), ('Prop', proposed_results)] 
+        for i, pump in enumerate(results.pumps)],
+        'layout': go.Layout(
+            xaxis_title='Costs ($)',
+            yaxis_title='Head (m)',
+            margin={'b': 30, 'l': 60, 'r': 60, 't': 60},
+            legend={
+                'yanchor': "top",
+                'y': 0.99,
+                'xanchor': "right",
+                'x': 0.99
+            }
+        )
+    }
