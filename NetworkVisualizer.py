@@ -64,8 +64,7 @@ class NetworkVisualizer:
                     line_x = [a[0] for a in row['geometry'].values[0].coords]
                     line_y = [a[1] for a in row['geometry'].values[0].coords]
                     
-                    plt.plot(line_x, line
-                    , linewidth=dia / 100)
+                    plt.plot(line_x, line_y, linewidth=dia / 100)
                     # plt.text((line_x[0]
                     #  2, 
                     #     (line_y[0] + li

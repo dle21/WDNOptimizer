@@ -63,7 +63,7 @@ def utmToLatLng(zone, easting, northing, northernHemisphere=True):
 def network_mapper():
     fig, lats, lons = update_network_map({})
     fig['layout'] = go.Layout(
-        showlegend=True,
+        showlegend=False,
         height=600,
         margin={"r": 0, "t": 0, "l": 0, "b": 30},
         mapbox={
@@ -72,7 +72,6 @@ def network_mapper():
                 'lat': (max(lats) + min(lats)) / 2,
             },
             'style': 'open-street-map',
-            # TODO autoscaling? 1 shows the world,
             'zoom': 14,
             
         },
@@ -80,25 +79,22 @@ def network_mapper():
     return fig
 
 def update_network_map(fig):
+    import time
     df = pickle.load(open('assets\\selected_activation.obj', 'rb'))
+
     scatter_groups = {}
     lons = []
     lats = []
     if len(df) > 0:
         fig['data'] = []
-        middle_node_trace = go.Scattermapbox(
-            lon=[],
-            lat=[],
-            text=[],
-            mode='markers',
-            hoverinfo='text',
-            marker=go.scattermapbox.Marker(
-                opacity=0,
-                color=[]
-            ),
-            customdata=[]
-        )
-        
+        middle_node_trace = {
+            'lon': [],
+            'lat':[],
+            'text':[],
+            'marker_color': [],
+            'customdata': [],
+        }
+        s = time.time()
         for i in range(len(df)):
             po_lats = []
             po_lons = []
@@ -107,22 +103,11 @@ def update_network_map(fig):
                 po_lons.append(lon)
                 po_lats.append(lat)
             color = f'rgb({int(df["Activation_P"][i] * 255)},0,0)'
-            # fig['data'].append(go.Scattermapbox(
-            #     name=df['id'][i],
-            #     mode='lines+markers',
-            #     lon=po_lons,
-            #     lat=po_lats,
-            #     customdata=[df['id'][i]],
-            #     hoverinfo="skip",
-            #     marker=go.scattermapbox.Marker(
-            #         color=f'rgb({strength},0,0)',
-            #     ),
-            # ))
             middle_node_trace['lon'] += tuple([sum(po_lons) / len(po_lons)])
             middle_node_trace['lat'] += tuple([sum(po_lats) / len(po_lats)])
-            middle_node_trace['text'] += 'ID: ' + str(df['id'][i]) + '<br>P: ' + str(df['Activation_P'][i]),
-            middle_node_trace['marker']['color'] += color,
-            middle_node_trace['customdata'] += df['id'][i],
+            middle_node_trace['text'].append('ID: ' + str(df['id'][i]) + '<br>P: ' + str(df['Activation_P'][i]))
+            middle_node_trace['marker_color'].append(color)
+            middle_node_trace['customdata'].append(df['id'][i])
             
             if color not in scatter_groups.keys():
                 scatter_groups[color] = {}
@@ -134,19 +119,32 @@ def update_network_map(fig):
             
             lats += po_lats
             lons += po_lons
+        print('add scatter', time.time() - s)
         for color in scatter_groups.keys():
             fig['data'].append(go.Scattermapbox(
-                    name=color,
-                    mode='lines+markers',
-                    lat=scatter_groups[color]['lats'],
-                    lon=scatter_groups[color]['lons'],
-                    # customdata=[df['id'][i]],
-                    hoverinfo="skip",
-                    marker=go.scattermapbox.Marker(
-                        color=color,
-                    ),
-                ))
-        fig['data'].append(middle_node_trace)
+                name=color,
+                mode='lines+markers',
+                lat=scatter_groups[color]['lats'],
+                lon=scatter_groups[color]['lons'],
+                # customdata=[df['id'][i]],
+                hoverinfo="skip",
+                marker=go.scattermapbox.Marker(
+                    color=color,
+                ),
+            ))
+        fig['data'].append(go.Scattermapbox(
+            lon=middle_node_trace['lon'],
+            lat=middle_node_trace['lat'],
+            text=middle_node_trace['text'],
+            mode='markers',
+            hoverinfo='text',
+            marker=go.scattermapbox.Marker(
+                opacity=0,
+                color=middle_node_trace['marker_color']
+            ),
+            customdata=middle_node_trace['customdata'],
+            showlegend=False
+        ))
     return fig, lats, lons
 
 def plot_pareto():
@@ -239,6 +237,22 @@ def network_hydraulics_mapper(results_file, results):
         (10, float('inf')): 'rgb(255,0,0)',
     }
 
+    min_p_legend = {
+        'rgb(255,0,0)': '< 20',
+        'rgb(255,255,0)': '20 - 25',
+        'rgb(0,255,0)': '25 - 30',
+        'rgb(0,255,255)': '30 - 35',
+        'rgb(0,0,255)': '35 + ',
+    }
+
+    max_hl_legend = {
+        'rgb(0,0,255)': '< 3',
+        'rgb(0,255,0)': '3 - 5',
+        'rgb(255,165,0)': '5 - 10',
+        'rgb(255,0,0)': '10 +',
+        # 'rgb(0,0,0)': 'NA'
+    }
+
     node_df = gpd.read_file('assets\\gis\\' + results_file.replace('.inp', '_nodes.shp'))
     pipe_df = gpd.read_file('assets\\gis\\' + results_file.replace('.inp', '_pipes.shp'))
 
@@ -261,89 +275,96 @@ def network_hydraulics_mapper(results_file, results):
                 color=[],
             )
         )
-
+        middle_node_trace = {
+            'lon': [],
+            'lat':[],
+            'text':[],
+            'marker_color': [],
+        }
         scatter_groups = {}
         for i in range(len(pipe_df)):
             if pipe_df['id'][i] in max_hl.index:
                 # strength = int((1 - max_hl.rank()[i] / len(max_hl)) * 255)
-                
                 color = max_hl_colors[list(max_hl_colors.keys())[[k[1] > max_hl[i] and max_hl[i] >= k[0] for k in max_hl_colors.keys()].index(True)]]
                 text = str(round(max_hl[pipe_df['id'][i]], 2))
-            else:
-                color = f'rgb(0,0,0)'
-                text = 'NA'
-            po_lats = []
-            po_lons = []
-            for j in range(len(pipe_df['geometry'][i].coords)):
-                lat, lon = utmToLatLng(55, pipe_df['geometry'][i].coords[j][0], pipe_df['geometry'][i].coords[j][1], False)
-                po_lons.append(lon)
-                po_lats.append(lat)
-            # fig.add_trace(go.Scattermapbox(
-            #     name=pipe_df['id'][i],
-            #     mode='lines',
-            #     lon=po_lons,
-            #     lat=po_lats,
-            #     customdata=[pipe_df['id'][i]],
-            #     # text=text,
-            #     hoverinfo="skip",
-            #     marker=go.scattermapbox.Marker(
-            #         color=color,
-            #     ),
-            # ))
+            # else:
+            #     color = f'rgb(0,0,0)'
+            #     text = 'NA'
+                po_lats = []
+                po_lons = []
+                for j in range(len(pipe_df['geometry'][i].coords)):
+                    lat, lon = utmToLatLng(55, pipe_df['geometry'][i].coords[j][0], pipe_df['geometry'][i].coords[j][1], False)
+                    po_lons.append(lon)
+                    po_lats.append(lat)
 
-            middle_node_trace['lon'] += tuple([(po_lons[0] + po_lons[1]) / 2])
-            middle_node_trace['lat'] += tuple([(po_lats[0] + po_lats[1]) / 2])
-            middle_node_trace['text'] += 'ID: ' + str(pipe_df['id'][i]) + '<br>HL: ' + text,
-            middle_node_trace['marker']['color'] += color,
-            
-            if color not in scatter_groups.keys():
-                scatter_groups[color] = {}
-                scatter_groups[color]['lats'] = []
-                scatter_groups[color]['lons'] = []
-            
-            scatter_groups[color]['lats'] += po_lats + [None]
-            scatter_groups[color]['lons'] += po_lons + [None]
+                middle_node_trace['lon']+=tuple([sum(po_lons) / len(po_lons)])
+                middle_node_trace['lat']+=tuple([sum(po_lats) / len(po_lats)])
+                middle_node_trace['text'].append('ID: ' + str(pipe_df['id'][i]) + '<br>HL: ' + text)
+                middle_node_trace['marker_color'].append(color)
+                
+                if color not in scatter_groups.keys():
+                    scatter_groups[color] = {}
+                    scatter_groups[color]['lats'] = []
+                    scatter_groups[color]['lons'] = []
+                
+                scatter_groups[color]['lats'] += po_lats + [None]
+                scatter_groups[color]['lons'] += po_lons + [None]
 
-            lats += po_lats
-            lons += po_lons
+                lats += po_lats
+                lons += po_lons
         for color in scatter_groups.keys():
             fig['data'].append(go.Scattermapbox(
-                name=color,
+                name=max_hl_legend[color],
                 mode='lines+markers',
                 lon=scatter_groups[color]['lons'],
                 lat=scatter_groups[color]['lats'],
-                # customdata=[pipe_df['id'][i]],
-                # text=text,
                 hoverinfo="skip",
                 marker=go.scattermapbox.Marker(
                     color=color,
                 ),
             ))
 
-        fig['data'].append(middle_node_trace)
-
-        node_lons = []
-        node_lats = []
-        node_text = []
-        node_colors = []
-        for node in min_p.index:
-            row = node_df.loc[node_df['id'] == node]['geometry']
-            lat, lon = utmToLatLng(55, row.x.values[0], row.y.values[0], False)
-            node_lons.append(lon)
-            node_lats.append(lat)
-            node_text.append('ID: ' + node + '<br>P: ' + str(round(min_p[node], 2)))
-            node_colors.append(min_p_colors[list(min_p_colors.keys())[[k[1] > min_p[node] and min_p[node] >= k[0] for k in min_p_colors.keys()].index(True)]])
-
         fig['data'].append(go.Scattermapbox(
-            lon=node_lons,
-            lat=node_lats,
-            text=node_text,
+            lon=middle_node_trace['lon'],
+            lat=middle_node_trace['lat'],
+            text=middle_node_trace['text'],
             mode='markers',
             hoverinfo='text',
             marker=go.scattermapbox.Marker(
-                color=node_colors,
-            )
+                opacity=0,
+                color=middle_node_trace['marker_color']
+            ),
+            showlegend=False
         ))
+
+        node_traces = {}
+        for node in min_p.index:
+            color = min_p_colors[list(min_p_colors.keys())[[k[1] > min_p[node] and min_p[node] >= k[0] for k in min_p_colors.keys()].index(True)]]
+            if color not in node_traces.keys():
+                node_traces[color] = {
+                    'lat': [],
+                    'lon': [],
+                    'text': [],
+                }
+
+            row = node_df.loc[node_df['id'] == node]['geometry']
+            lat, lon = utmToLatLng(55, row.x.values[0], row.y.values[0], False)
+            node_traces[color]['lon'].append(lon)
+            node_traces[color]['lat'].append(lat)
+            node_traces[color]['text'].append('ID: ' + node + '<br>P: ' + str(round(min_p[node], 2)))
+
+        for color in node_traces.keys():
+            fig['data'].append(go.Scattermapbox(
+                name=min_p_legend[color],
+                lon=node_traces[color]['lon'],
+                lat=node_traces[color]['lat'],
+                text=node_traces[color]['text'],
+                mode='markers',
+                hoverinfo='text',
+                marker=go.scattermapbox.Marker(
+                    color=color,
+                )
+            ))
 
         fig['layout'] = go.Layout(
             showlegend=True,
@@ -356,7 +377,6 @@ def network_hydraulics_mapper(results_file, results):
                 },
                 'style': 'open-street-map',
                 # TODO autoscaling? 1 shows the world,
-                # TODO 10 shows SDLAM (0.7 lon range, 0.23 lat)
                 'zoom': 14,
             },
         )
@@ -403,11 +423,11 @@ def get_pump_curves(existing_results, proposed_results):
     return {
         'data': [
             go.Scatter(
-                # x=np.linspace(0, 2 * results.wn.get_link(pump).get_pump_curve().points[0][0] * 1000),
-                # y=
-                # 4/3 * results.wn.get_link(pump).get_pump_curve().points[0][1] - 
-                # results.wn.get_link(pump).get_pump_curve().points[0][1] / (3 * (results.wn.get_link(pump).get_pump_curve().points[0][0] * 1000) ** 2) *
-                # np.linspace(0, 2 * results.wn.get_link(pump).get_pump_curve().points[0][0] * 1000) ** 2,
+        #         # x=np.linspace(0, 2 * results.wn.get_link(pump).get_pump_curve().points[0][0] * 1000),
+        #         # y=
+        #         # 4/3 * results.wn.get_link(pump).get_pump_curve().points[0][1] - 
+        #         # results.wn.get_link(pump).get_pump_curve().points[0][1] / (3 * (results.wn.get_link(pump).get_pump_curve().points[0][0] * 1000) ** 2) *
+        #         # np.linspace(0, 2 * results.wn.get_link(pump).get_pump_curve().points[0][0] * 1000) ** 2,
                 x=[a[0] * 1000 for a in results.wn.get_link(pump).get_pump_curve().points],
                 y=[a[1] for a in results.wn.get_link(pump).get_pump_curve().points],
                 

@@ -121,9 +121,12 @@ def plot_result_graph(selected, clicked, inp_file):
             po = clicked
         networks = [os.path.join('assets', 'non-dominated solutions', f'C_{round(p["x"], 2)}_HP_{round(p["y"], 2)}.inp') for p in po['points']]
         networks = list(set([n for n in networks if os.path.exists(n)]))
+        
         if len(networks) > 0:
             nwkv = NetworkVisualizer(inp_file)
+
             nwkv.generate_activation_shp(networks)
+
             # return update_network_map(initial_network_map)[0]
             return [dash.dcc.Graph(id='network_plots_graph', figure=network_mapper())]
         else:
