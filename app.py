@@ -128,7 +128,7 @@ def plot_result_graph(selected, clicked, inp_file):
             nwkv.generate_activation_shp(networks)
 
             # return update_network_map(initial_network_map)[0]
-            return [dash.dcc.Graph(id='network_plots_graph', figure=network_mapper())]
+            return [dash.dcc.Graph(id='network_plots_graph', figure=network_mapper(networks))]
         else:
             # return initial_network_map
             return dash.dcc.Graph(figure=go.Figure().update_layout(go.Layout()))

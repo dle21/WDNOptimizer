@@ -60,8 +60,8 @@ def utmToLatLng(zone, easting, northing, northernHemisphere=True):
 
     return latitude, longitude
 
-def network_mapper():
-    fig, lats, lons = update_network_map({})
+def network_mapper(networks):
+    fig, lats, lons = update_network_map({}, networks)
     fig['layout'] = go.Layout(
         showlegend=False,
         height=600,
@@ -78,9 +78,10 @@ def network_mapper():
     )
     return fig
 
-def update_network_map(fig):
+def update_network_map(fig, networks):
     import time
     df = pickle.load(open('assets\\selected_activation.obj', 'rb'))
+    dias = pickle.load(open('assets\\selected_diameters.obj', 'rb'))
 
     scatter_groups = {}
     lons = []
@@ -95,6 +96,9 @@ def update_network_map(fig):
             'customdata': [],
         }
         s = time.time()
+
+        if len(networks) == 1:
+            dias = pickle.load(open('assets\\selected_diameters.obj', 'rb'))
         for i in range(len(df)):
             po_lats = []
             po_lons = []
@@ -105,7 +109,15 @@ def update_network_map(fig):
             color = f'rgb({int(df["Activation_P"][i] * 255)},0,0)'
             middle_node_trace['lon'] += tuple([sum(po_lons) / len(po_lons)])
             middle_node_trace['lat'] += tuple([sum(po_lats) / len(po_lats)])
-            middle_node_trace['text'].append('ID: ' + str(df['id'][i]) + '<br>P: ' + str(df['Activation_P'][i]))
+
+            ex_dia = ''
+            opt_dia = ''
+            if pd.notnull(dias[networks[0]][i]):
+                ex_dia = '<br>D: ' + str(int(df['Ex_dia'][i]))
+                if len(networks) == 1:
+                    opt_dia = 'Opt D: ' + str(int(dias[networks[0]][i]))
+
+            middle_node_trace['text'].append('ID: ' + str(df['id'][i]) + ex_dia + opt_dia + '<br>P: ' + str(df['Activation_P'][i]))
             middle_node_trace['marker_color'].append(color)
             middle_node_trace['customdata'].append(df['id'][i])
             
@@ -299,7 +311,7 @@ def network_hydraulics_mapper(results_file, results):
 
                 middle_node_trace['lon']+=tuple([sum(po_lons) / len(po_lons)])
                 middle_node_trace['lat']+=tuple([sum(po_lats) / len(po_lats)])
-                middle_node_trace['text'].append('ID: ' + str(pipe_df['id'][i]) + '<br>HL: ' + text)
+                middle_node_trace['text'].append('ID: ' + str(pipe_df['id'][i]) + '<br>D: ' + str(int(results.wn.get_link(pipe_df['id'][i]).diameter * 1000)) + '<br>HL: ' + text)
                 middle_node_trace['marker_color'].append(color)
                 
                 if color not in scatter_groups.keys():
