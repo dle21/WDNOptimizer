@@ -2,7 +2,8 @@ from NetworkVisualizer import NetworkVisualizer
 import os
 
 nwkv = NetworkVisualizer('TONGALA_Calibration_2022.inp')
-nwkv.get_network()
+nwkv.generate_gdfs()
+nwkv.export_shp()
 # nwkv.generate_gdfs()
 # nwkv.export_shp()
 

@@ -162,7 +162,7 @@ page2 = html.Div([
                 html.P(id='generated_files'),
                 dbc.Row([
                     html.P(id='GA_initialise'),
-                    dbc.Progress(id="GA_progress", striped=True, value=0, style={'visibility': 'hidden'}),
+                    dbc.Progress(id="GA_progress", striped=True, value=0, animated=True, style={'visibility': 'hidden'}),
                     html.P(id='GA_status', style={'visibility': 'hidden'})
                 ])
             ],
@@ -286,6 +286,7 @@ def render_page_content(pathname):
     elif pathname == "/page-2":
         return page2
     elif pathname == "/page-3":
+        page3.children[1].children[1].children[0].children[1].options = os.listdir(os.path.join('assets', 'non-dominated solutions'))
         return page3
     # If the user tries to reach a different page, return a 404 message
     return html.Div(

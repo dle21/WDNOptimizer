@@ -83,7 +83,7 @@ def run_GA(set_progress, n, inp_file, cost_basis, proposed_inp_file, gens, min_p
         nwkv = NetworkVisualizer(inp_file)
         nwkv.generate_gdfs()
         nwkv.export_shp()
-        if proposed_inp_file is not None:
+        if proposed_inp_file is not None and proposed_inp_file != '':
             nwkv = NetworkVisualizer(proposed_inp_file)
             nwkv.generate_gdfs()
             nwkv.export_shp()

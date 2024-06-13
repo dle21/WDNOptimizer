@@ -79,7 +79,6 @@ def network_mapper(networks):
     return fig
 
 def update_network_map(fig, networks):
-    import time
     df = pickle.load(open('assets\\selected_activation.obj', 'rb'))
     dias = pickle.load(open('assets\\selected_diameters.obj', 'rb'))
 
@@ -95,7 +94,6 @@ def update_network_map(fig, networks):
             'marker_color': [],
             'customdata': [],
         }
-        s = time.time()
 
         if len(networks) == 1:
             dias = pickle.load(open('assets\\selected_diameters.obj', 'rb'))
@@ -115,7 +113,7 @@ def update_network_map(fig, networks):
             if pd.notnull(dias[networks[0]][i]):
                 ex_dia = '<br>D: ' + str(int(df['Ex_dia'][i]))
                 if len(networks) == 1:
-                    opt_dia = 'Opt D: ' + str(int(dias[networks[0]][i]))
+                    opt_dia = ', Opt D: ' + str(int(dias[networks[0]][i]))
 
             middle_node_trace['text'].append('ID: ' + str(df['id'][i]) + ex_dia + opt_dia + '<br>P: ' + str(df['Activation_P'][i]))
             middle_node_trace['marker_color'].append(color)
@@ -131,7 +129,7 @@ def update_network_map(fig, networks):
             
             lats += po_lats
             lons += po_lons
-        print('add scatter', time.time() - s)
+        
         for color in scatter_groups.keys():
             fig['data'].append(go.Scattermapbox(
                 name=color,

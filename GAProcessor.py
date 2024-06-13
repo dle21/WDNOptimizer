@@ -14,7 +14,7 @@ class GAProcessor:
         self.nwke = NetworkEvaluator(inp_file, cost_basis)
         print(proposed_inp_file)
         self.proposed_inp_file = proposed_inp_file
-        if self.proposed_inp_file is not None:
+        if self.proposed_inp_file is not None and self.proposed_inp_file != '':
             self.nwk = NetworkEvaluator(proposed_inp_file, cost_basis)
         else:
             self.nwk = self.nwke
@@ -26,7 +26,7 @@ class GAProcessor:
         print(f'\n\nOriginal network cost: ${self.existing_totex:,.2f}, Penalties: ${self.existing_penalties:,.2f}')
         available_diameters = self.nwke.pipecosts['Size'].unique()
 
-        if self.proposed_inp_file is not None:
+        if self.proposed_inp_file is not None and self.proposed_inp_file != '':
             self.manual_totex, manual_capex = self.nwk.totex_func(self.nwke.pipe_df)
             self.manual_penalties = self.nwk.penalties(min_p, max_hl)
             print(f'Manual network upgrade cost: ${self.manual_totex:,.2f}, Penalties: ${self.manual_penalties:,.2f}')
@@ -104,7 +104,7 @@ class GAProcessor:
             'xlim': [min(self.existing_totex, min(pareto_costs)) * 0.9, max(self.existing_totex, max(pareto_costs)) * 1.1],
             'ylim': [min(self.existing_penalties, min(pareto_h_penalties)) * 0.9, max(self.existing_penalties, max(pareto_h_penalties)) * 1.1],
         }
-        if self.proposed_inp_file is not None:
+        if self.proposed_inp_file is not None and self.proposed_inp_file != '':
             plotting_results_export['manual_totex'] = self.manual_totex
             plotting_results_export['manual_penalties'] = self.manual_penalties
             plotting_results_export['xlim'] = [min(self.existing_totex, self.manual_totex, min(pareto_costs)) * 0.9, max(self.existing_totex, self.manual_totex, max(pareto_costs)) * 1.1]
